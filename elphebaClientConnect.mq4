@@ -5,13 +5,13 @@
 //+------------------------------------------------------------------+
 #property copyright "Copyright 2017,Codatrek.com"
 #property link      "https://www.codatrek.com"
-#property version   "1.00"
+#property version   "1.16"
 #property strict
-/*  "HIGH RISK WARNING: Foreign exchange trading carries a high level of risk that may not be suitable for all investors. 
-   Leverage creates additional risk and loss exposure. 
-   Before you decide to trade foreign exchange, carefully consider your investment objectives, experience level, and risk tolerance. 
-   You could lose some or all of your initial investment; do not invest money that you cannot afford to lose. 
-   Educate yourself on the risks associated with foreign exchange trading, and seek advice from an independent financial or tax advisor if you have any questions. 
+/*  "HIGH RISK WARNING: Foreign exchange trading carries a high level of risk that may not be suitable for all investors.
+   Leverage creates additional risk and loss exposure.
+   Before you decide to trade foreign exchange, carefully consider your investment objectives, experience level, and risk tolerance.
+   You could lose some or all of your initial investment; do not invest money that you cannot afford to lose.
+   Educate yourself on the risks associated with foreign exchange trading, and seek advice from an independent financial or tax advisor if you have any questions.
    Any data and information is provided 'as is' solely for informational purposes, and is not intended for trading purposes or advice."
 */
 
@@ -21,15 +21,15 @@ extern double    BuyPoint=15;
 extern double    SellPoint=85;
 extern double    tp = 230;
 extern double    dp = 30;
-extern int       min_equity=50;
-extern double    sl=75000;
-extern int       max_trades=18; // max trades per symbol pair
-extern int       bufferEquity=10000; // use this to emulate transfers between accounts. Start with 200, add 10,000. Only 200 will be seen by EA
-extern int       balance=500;
+extern double    sl = 7500;
+extern int       max_trades=8; // max trades per symbol pair
+extern double    bufferEquity=0; // use this to emulate transfers between accounts. Start with 200, add 10,000. Only 200 will be seen by EA
 extern bool      instant_close=true;
+extern bool      openTrades=true;
+extern bool      closeTrades=true;
 
 int      tkt,lowest_ticket,highest_ticket;
-bool     stop_out=false;
+
 double   take,stop;
 double   CloseOutPrice,EquityCheck,order_points;
 int      RSIperiod=14;
@@ -47,13 +47,13 @@ int      oldOrdersTotal=0,oldHistoryTotal=0,oldMaxTicket=0;
 double   Lot,StartBalance,Withdrawls,WeeklyWithdrawl,Deposits,updateEquity,increaseTarget;
 bool     rsi_swap=true;
 bool     this_rsi,last_rsi,stoch_buy,stoch_sell,close_up=false,close_email=false,bNB,bM1,bW1;
-bool     ma_close,profit_close[999],trigger_reached[999],order_exists[999],res;
-double   current_profit[999],tkt_open[999],tkt_high[999],tkt_low[999],tkt_close[999];
-int      hedge_tkt[999],h_tkt;
+bool     ma_close,profit_close[99],trigger_reached[99],order_exists[99],res;
+double   current_profit[99],tkt_open[99],tkt_high[99],tkt_low[99],tkt_close[99];
+int      hedge_tkt[99],h_tkt;
 double   symbol_profit;
-double   f_profit[999];
+double   f_profit[99];
 double   RSIprev;
-int      open_trades[1000],open_tickets;
+int      open_trades[100],open_tickets;
 double   iStochvalue=0;
 double   RSInow,RSIlast;
 
@@ -62,25 +62,22 @@ int      handle,st;
 string   order[]={"Buy","Sell"};
 datetime LastTick[20]; // same number as symbol pairs or greater
 datetime TimeNow;
-string   SymbolUsed[20]; // only open one trade under each currency
-/* 
+bool     SymbolUsed[20]; // only open one trade under each currency
 string   SymbolPairs[]=
   {
    "EURUSD","EURGBP","GBPUSD",
    "AUDUSD","EURJPY","AUDJPY",
    "EURAUD","USDCAD","USDJPY",
    "GBPCAD","AUDCAD","USDCHF",
-   "GBPAUD","XAUUSD","XAGUSD"
+   "GBPAUD"
   };
- */
-string   SymbolPairs[]={"EURUSD"};
 //+------------------------------------------------------------------+
 //| expert initialization function                                   |
 //+------------------------------------------------------------------+
 bool       bNewMin()
   {
 
-   static int iTime_2=0;
+   static datetime iTime_2=0;
 
    if(iTime_2<iTime(NULL,PERIOD_M1,0))
      { iTime_2=iTime(NULL,PERIOD_M1,0); return(TRUE); }
@@ -91,7 +88,7 @@ bool       bNewMin()
 bool       bNewWeek()
   {
 
-   static int iTime_1=0;
+   static datetime iTime_1=0;
 
    if(iTime_1<iTime(NULL,PERIOD_W1,0))
      { iTime_1=iTime(NULL,PERIOD_W1,0); return(TRUE); }
@@ -102,7 +99,7 @@ bool       bNewWeek()
 bool       bNewBar()
   {
 
-   static int iTime_0=0;
+   static datetime iTime_0=0;
 
    if(iTime_0<iTime(NULL,NULL,0))
      { iTime_0=iTime(NULL,NULL,0); return(TRUE); }
@@ -145,13 +142,7 @@ void CheckForOpen()
         }
       Print(Check_Symbol," : Stoch - ",iStochvalue," - RSI Swap = ",rsi_swap);
 
-/*
-      if(SymbolUsed[a]=="True")
-        {
-         rsi_swap=false;
-         Print(Check_Symbol," is already open");
-        }
-*/
+      if(SymbolUsed[a]) rsi_swap=false;
 
       //---- sell conditions
       if(rsi_swap && stoch_sell)
@@ -162,6 +153,7 @@ void CheckForOpen()
          if(res)
            {
             FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+Check_Symbol+" Event=New_Trade TicketNumber="+DoubleToStr(res,0)+" OrderType="+DoubleToStr(OrderType(),0)+" OpenPrice="+DoubleToStr(OrderOpenPrice(),5)+" Lots="+DoubleToStr(OrderLots(),2)+" TP="+DoubleToStr(OrderTakeProfit(),5)+" SL="+DoubleToStr(OrderStopLoss(),5));
+            TidyUpTrades();
            }
         }
       //---- buy conditions
@@ -173,11 +165,10 @@ void CheckForOpen()
          if(res)
            {
             FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+Check_Symbol+" Event=New_Trade TicketNumber="+DoubleToStr(res,0)+" OrderType="+DoubleToStr(OrderType(),0)+" OpenPrice="+DoubleToStr(OrderOpenPrice(),5)+" Lots="+DoubleToStr(OrderLots(),2)+" TP="+DoubleToStr(OrderTakeProfit(),5)+" SL="+DoubleToStr(OrderStopLoss(),5));
-
+            TidyUpTrades();
            }
         }
      }
-   TidyUpTrades();
   }
 //+------------------------------------------------------------------+
 //|                                                                  |
@@ -314,7 +305,7 @@ void closeAll()
          //      Print("Order ",tkt2," closed at ",current_profit[tkt2]);
         } //3
      }
-   TidyUpTrades();
+
   }
 //+------------------------------------------------------------------+
 //| export all trades function                                       |
@@ -331,26 +322,33 @@ void ExportTrades()
         {
          order_points=(OrderProfit()/OrderLots());
          FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+OrderSymbol()+" Event=Existing_Trade TicketNumber="+DoubleToStr(OrderTicket(),0)+" OrderType="+DoubleToStr(OrderType(),0)+" OpenPrice="+DoubleToStr(OrderOpenPrice(),5)+" Lots="+DoubleToStr(OrderLots(),2)+" TP="+DoubleToStr(OrderTakeProfit(),5)+" SL="+DoubleToStr(OrderStopLoss(),5)+" Profit="+DoubleToStr(OrderProfit(),2)+" Points="+DoubleToStr(order_points,2));
-        }
-      if(oldHistoryTotal!=OrdersHistoryTotal())
-        {
-         for(int u=0;u<OrdersHistoryTotal();u++)
+         for(int c=0;c<ArraySize(SymbolPairs); c++)
            {
-            //Print("historical orders = ",OrdersHistoryTotal(), " writing no. ",u);
-            res=OrderSelect(u,SELECT_BY_POS,MODE_HISTORY);
-            if(res)
+            if(OrderSymbol()==SymbolPairs[c])
               {
-               FileWrite(handle,"Time="+DoubleToStr(correctTime(OrderCloseTime()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+OrderSymbol()+" Event=Closed_Trade TicketNumber="+DoubleToStr(OrderTicket(),0)+" OrderType="+DoubleToStr(OrderType(),0)+" OpenPrice="+DoubleToStr(OrderOpenPrice(),5)+" Lots="+DoubleToStr(OrderLots(),2)+" ClosePrice="+DoubleToStr(OrderClosePrice(),5)+" Profit="+DoubleToStr(OrderProfit(),2)+" Commission="+DoubleToStr(OrderCommission(),2));
+               SymbolUsed[c]=true;
               }
            }
         }
-      oldOrdersTotal=OrdersTotal();
-      oldHistoryTotal=OrdersHistoryTotal();
-      oldMaxTicket=highest_ticket;
-
-      if(!IsTesting()) FileFlush(handle);
-      return;
      }
+   if(oldHistoryTotal!=OrdersHistoryTotal())
+     {
+      for(int u=0;u<OrdersHistoryTotal();u++)
+        {
+         //Print("historical orders = ",OrdersHistoryTotal(), " writing no. ",u);
+         res=OrderSelect(u,SELECT_BY_POS,MODE_HISTORY);
+         if(res)
+           {
+            FileWrite(handle,"Time="+DoubleToStr(correctTime(OrderCloseTime()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+OrderSymbol()+" Event=Closed_Trade TicketNumber="+DoubleToStr(OrderTicket(),0)+" OrderType="+DoubleToStr(OrderType(),0)+" OpenPrice="+DoubleToStr(OrderOpenPrice(),5)+" Lots="+DoubleToStr(OrderLots(),2)+" ClosePrice="+DoubleToStr(OrderClosePrice(),5)+" Profit="+DoubleToStr(OrderProfit(),2)+" Commission="+DoubleToStr(OrderCommission(),2));
+           }
+        }
+     }
+   oldOrdersTotal=OrdersTotal();
+   oldHistoryTotal=OrdersHistoryTotal();
+   oldMaxTicket=highest_ticket;
+
+   if(!IsTesting()) FileFlush(handle);
+   return;
   }
 //+------------------------------------------------------------------+
 //|   sort out the incorrect epoch                                   |
@@ -358,9 +356,10 @@ void ExportTrades()
 double correctTime(double time_value)
   {
 // for some reason all epoch times are 2 hours ahead..... Seriously, how can you get epoch wrong..
-//   return time_value-(3600*2);
+   int difference=(int)(TimeCurrent()-TimeGMT());
+   return time_value-(difference);
 // European summer time, 3 hours ahead
-   return time_value-(3600*3);
+//   return time_value-(3600*3);
   }
 //+------------------------------------------------------------------+
 //| tidy up trades function                                          |
@@ -368,11 +367,11 @@ double correctTime(double time_value)
 
 int TidyUpTrades()
   {
-
-   for(int c=0;c<=ArraySize(SymbolPairs); c++)
+   for(int c=0;c<ArraySize(SymbolPairs); c++)
      {
-      SymbolUsed[c]="False";
+      SymbolUsed[c]=false;
      }
+
    for(int t=0;t<=OrdersTotal();t++)
      {
       res=OrderSelect(t,SELECT_BY_POS);
@@ -386,17 +385,8 @@ int TidyUpTrades()
             if(open_trades[find_tkt]==tkt_number)
               {
                found_posn=find_tkt;
-               for(int c=0;c<ArraySize(SymbolPairs); c++)
-                 {
-                  if(OrderSymbol()==SymbolPairs[c])
-                    {
-                     SymbolUsed[c]="True";
-                    }
-                 }
-              }
-
-           };
-
+              };
+           }
          if(found_posn<0)
            {
             open_tickets=open_tickets+1;
@@ -426,7 +416,7 @@ void OnInit()
    handle=FileOpen(filename,FILE_CSV|FILE_WRITE|FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_CSV);
 
    Print("filename = ",filename,",  handle = ",handle);
-   bufferEquity=AccountBalance()-balance;
+
    StartBalance=AccountBalance()-bufferEquity;
 
    reinit();
@@ -459,35 +449,60 @@ int reinit()
       hedge_tkt[f]= 0;
       f_profit[f] = -9999.0;
      }
-// 1% increase then close
+
+// contact mothership for instructions
+// expecting a csv string of CloseUp, Withdrawls,Deposits
+
+   string acctUrl="http://kmug.ddns.net/elpheba/"+DoubleToStr(AccountNumber(),0)+"/start/";
+
+   string instructions=GrabWeb(acctUrl,simEquity());
+   instructions=StringTrimRight(StringTrimLeft(instructions));
+
+   string sep=",";                // A separator as a character
+   ushort u_sep;                  // The code of the separator character
+   string result[];               // An array to get strings
+//--- Get the separator code
+   u_sep=StringGetCharacter(sep,0);
+//--- Split the string to substrings
+   int k=StringSplit(instructions,u_sep,result);
+//--- Show a comment
+   PrintFormat("Strings obtained: %d. Used separator '%s' with the code %d",k,sep,u_sep);
+//--- Now output all obtained strings
+   if(k>0)
+     {
+      for(int i=0;i<k;i++)
+        {
+         printf("result[%d]=%s",i,result[i]);
+         result[i]=(string) result[i];
+        }
+     }
+
+   if(k==3)
+     {
+      CloseOutPrice=(double) result[0];
+      Withdrawls=(double) result[1];
+      Deposits=(double) result[2];
+     }
+
+   bNewBar();
+   bNewWeek();
+   bNewMin();
+
+   if(k!=3)
+     {
+
+      Print("Waiting for mothership - pausing 15 minutes before retry");
+      Sleep(900000);
+      reinit();
+
+     }
    increaseTarget=simBalance()*0.01;
-   CloseOutPrice=simBalance()+(increaseTarget*2);
-   EquityCheck=simEquity()*(min_equity/100);
+   EquityCheck=simEquity()*0.85;
    LotPrice=(simEquity()/300);
 
    symbol_profit=0;
    Lot=NormalizeDouble(LotPrice/100,2);
    if(Lot<0.01) Lot=0.01;
-
-   MAGICMA=(CloseOutPrice*100);
-   highest_ticket=0;
-   bNewBar();
-   bNewWeek();
-   bNewMin();
-
-   for(int j=0;j<OrdersTotal();j++)
-     { //1
-      res=OrderSelect(j,SELECT_BY_POS);
-      if(res)
-        {
-         if(OrderTicket()<lowest_ticket) lowest_ticket=OrderTicket();
-         if(OrderMagicNumber()<MAGICMA && OrderMagicNumber()!=24771442) MAGICMA=OrderMagicNumber();
-         if(lowest_ticket==0) lowest_ticket=OrderTicket();
-        }
-     }
-   Print("MAGICMA - ",MAGICMA," CloseOutPrice - ",CloseOutPrice);
-   CloseOutPrice=MAGICMA/100;
-   Print("MAGICMA - ",MAGICMA," CloseOutPrice - ",CloseOutPrice);
 
    oldOrdersTotal=-1;
    oldHistoryTotal=-1;
@@ -520,38 +535,31 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 void OnTick()
   {
-   if(stop_out) return;
-   if(simEquity()<0)
-     {
-      Print("STOP OUT");
-      closeAll();
-      bufferEquity=AccountBalance()-200;
-      Withdrawls=0;
-      Deposits=0;
-      FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=STOP_OUT");
-      stop_out=true;
-      return;
-     }
-
    if(IsTradeAllowed()==false) return;
    bNB = bNewBar();
    bM1 = bNewMin();
    bW1 = bNewWeek();
 
    updateEquity=0;
-   string acctUrl="http://kmug.ddns.net/elpheba/"+DoubleToStr(AccountNumber(),0);
-   if(bNB && !close_up && !IsTesting()) updateEquity=StringToDouble(GrabWeb(acctUrl,simEquity()));
-   if(updateEquity<0)
+   if(bM1 && !close_up && !IsTesting())
      {
-      Withdrawls=Withdrawls-updateEquity;
-      FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=Withdrawl Withdrawl="+DoubleToStr(updateEquity,2));
+      string acctUrl="http://kmug.ddns.net/elpheba/"+DoubleToStr(AccountNumber(),0)+"/";
+      string checkForUpdate=GrabWeb(acctUrl,simEquity());
+      string sep=",";                // A separator as a character
+      ushort u_sep;                  // The code of the separator character
+      string result[];               // An array to get strings
+      //--- Get the separator code
+      u_sep=StringGetCharacter(sep,0);
+      //--- Split the string to substrings
+      int k=StringSplit(checkForUpdate,u_sep,result);
+      if(k==2)
+        {
+         Withdrawls=(double) result[0];
+         Deposits=(double) result[1];
+        }
      }
-   if(updateEquity>0) 
-     {
-      Deposits=Deposits+updateEquity;
-      FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=Deposit Deposit="+DoubleToStr(updateEquity,2));
-     }
-   if(simEquity()>CloseOutPrice && !close_up)
+
+   if(simEquity()>CloseOutPrice && !close_up && closeTrades)
      {
       close_up=true;
       SendNotification("Close up reached @ "+DoubleToStr(simEquity(),2));
@@ -566,26 +574,27 @@ void OnTick()
       SendNotification("Close up completed @ "+DoubleToStr(simEquity(),2));
       FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=CloseUp_Complete Equity="+DoubleToStr(simEquity(),2));
       if(!IsTesting()) FileFlush(handle);
-      Withdrawls=Withdrawls+increaseTarget;
-      Print("Withdraw to bank - ",increaseTarget);
-      FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=Withdrawl Withdrawl="+DoubleToStr(increaseTarget,2));
+      double bankIt=simEquity()-CloseOutPrice;
+      if(bankIt<0) bankIt=0;
+      Print("Withdraw to bank - ",bankIt);
+      FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=Withdrawl Withdrawl="+DoubleToStr(bankIt,2));
+
+      string sendUrl="http://kmug.ddns.net/elpheba/"+DoubleToStr(AccountNumber(),0)+"/withdrawl/"+DoubleToStr((simEquity()*100),0)+"/"+DoubleToStr((bankIt*100),0);
+
+      string sendWithdrawl=(GrabWeb(sendUrl,simEquity()));
+
+      Print("Web request - ",sendUrl);
+      Sleep(900000); // pause 15 minutes to let mothership update
       reinit();
      }
 
    if(OrdersTotal()==0 && simBalance()<EquityCheck) reinit();
 
-   if(OrdersTotal()>0) CheckForClose();
-
-//   if(bM1) TidyUpTrades();
+   if(OrdersTotal()>0 && closeTrades) CheckForClose();
 
    if(bM1) ExportTrades();
 
-//if(bNB && !close_up && OrdersTotal()>max_trades) Print("Max trades opened already");
-//if(bNB && !close_up && simMargin()<EquityCheck) Print("Insufficient Margin");
-
-//if(bNB && !close_up && OrdersTotal()<max_trades && simMargin()>EquityCheck) CheckForOpen(); // This is more conservative as it takes into account moneys used in the trade itself.
-//   if(bNB && !close_up && simEquity()<EquityCheck) Print("Insufficient Margin");
-//if(bNB && !close_up && OrdersTotal()<max_trades && simEquity()>EquityCheck) CheckForOpen();  // Allows more equity to be used.
+   if(bNB && !close_up && openTrades && OrdersTotal()<max_trades && simMargin()>EquityCheck) CheckForOpen(); // This is more conservative as it takes into account moneys used in the trade itself.
 
    if(!IsTesting()) FileFlush(handle);
 
@@ -624,12 +633,12 @@ string GrabWeb(string strUrl,double currentEquity)
    char data[];
    string login=DoubleToStr(AccountNumber(),0);
    string password="pass";
-   string str="Acct="+login+"&Password="+password+"$Equity="+DoubleToStr(currentEquity,2);
+   string str="Acct="+login+"&Password="+password+"&Equity="+DoubleToStr(currentEquity,2);
 
    ArrayResize(data,StringToCharArray(str,data,0,WHOLE_ARRAY,CP_UTF8)-1);
 
    ResetLastError();
-   httpRes=WebRequest("POST",strUrl,"",NULL,1000,data,ArraySize(data),result,headers);
+   httpRes=WebRequest("GET",strUrl,"",NULL,1000,data,ArraySize(data),result,headers);
 
 //Print("Status code: ",httpRes,", error: ",GetLastError());
    response=CharArrayToString(result);
