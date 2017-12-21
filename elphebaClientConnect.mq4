@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Copyright 2017,Codatrek.com"
 #property link      "https://www.codatrek.com"
-#property version   "1.16"
+#property version   "1.17"
 #property strict
 /*  "HIGH RISK WARNING: Foreign exchange trading carries a high level of risk that may not be suitable for all investors.
    Leverage creates additional risk and loss exposure.
@@ -576,15 +576,15 @@ void OnTick()
       if(!IsTesting()) FileFlush(handle);
       double bankIt=simEquity()-CloseOutPrice;
       if(bankIt<0) bankIt=0;
-      Print("Withdraw to bank - ",bankIt);
+      //Print("Withdraw to bank - ",bankIt);
       FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=Withdrawl Withdrawl="+DoubleToStr(bankIt,2));
 
-      string sendUrl="http://kmug.ddns.net/elpheba/"+DoubleToStr(AccountNumber(),0)+"/withdrawl/"+DoubleToStr((simEquity()*100),0)+"/"+DoubleToStr((bankIt*100),0);
+      //string sendUrl="http://kmug.ddns.net/elpheba/"+DoubleToStr(AccountNumber(),0)+"/withdrawl/"+DoubleToStr((simEquity()*100),0)+"/"+DoubleToStr((bankIt*100),0);
+      // no longer do withdrawls automatically as we won't be able to do it in live. So get splunk to Send an email requesting a transfer instead.
+      // sendWithdrawl=(GrabWeb(sendUrl,simEquity()));
 
-      string sendWithdrawl=(GrabWeb(sendUrl,simEquity()));
-
-      Print("Web request - ",sendUrl);
-      Sleep(900000); // pause 15 minutes to let mothership update
+      //Print("Web request - ",sendUrl);
+      Sleep(300000); // pause 5 minutes to let mothership update
       reinit();
      }
 
