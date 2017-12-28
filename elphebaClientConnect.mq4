@@ -580,7 +580,7 @@ void OnTick()
       //Print("Withdraw to bank - ",bankIt);
       FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=Withdrawl Withdrawl="+DoubleToStr(bankIt,2));
 
-      string sendUrl="http://kmug.ddns.net/elpheba/"+DoubleToStr(AccountNumber(),0)+"/completed/"+DoubleToStr((simEquity()*100),0)+"/";
+      string sendUrl="http://kmug.ddns.net/elpheba/"+DoubleToStr(AccountNumber(),0)+"/completed/"+DoubleToStr((simEquity()*100),0);
       string sendWithdrawl=(GrabWeb(sendUrl,simEquity()));
 
       //Print("Web request - ",sendUrl);
