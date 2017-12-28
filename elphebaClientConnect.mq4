@@ -5,7 +5,6 @@
 //+------------------------------------------------------------------+
 #property copyright "Copyright 2017,Codatrek.com"
 #property link      "https://www.codatrek.com"
-#property version   "1.17"
 #property strict
 /*  "HIGH RISK WARNING: Foreign exchange trading carries a high level of risk that may not be suitable for all investors.
    Leverage creates additional risk and loss exposure.
@@ -16,6 +15,8 @@
 */
 
 double    LotPrice=1; // baby steps
+double version = 1.18;
+
 //--- input parameters
 extern double    BuyPoint=15;
 extern double    SellPoint=85;
@@ -313,7 +314,7 @@ void closeAll()
 
 void ExportTrades()
   {
-   FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=Report Equity="+DoubleToStr(simEquity(),2)+" CloseUp="+DoubleToStr(CloseOutPrice,2)+" FreeMargin="+DoubleToStr(simMargin(),2)+" MinEquity="+DoubleToStr(EquityCheck,2)+" Deposits="+DoubleToStr(Deposits,2)+" Withdrawls="+DoubleToStr(Withdrawls,2));
+   FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=Report Equity="+DoubleToStr(simEquity(),2)+" CloseUp="+DoubleToStr(CloseOutPrice,2)+" FreeMargin="+DoubleToStr(simMargin(),2)+" MinEquity="+DoubleToStr(EquityCheck,2)+" Deposits="+DoubleToStr(Deposits,2)+" Withdrawls="+DoubleToStr(Withdrawls,2)+" RealEquity="+DoubleToStr(AccountEquity(),2)+" Version="+DoubleToStr(version*100,0));
 //Print("Equity=",DoubleToStr(simEquity(),2)," Deposits=",DoubleToStr(Deposits,2)," Withdrawls=",DoubleToStr(Withdrawls,2));
    for(int t=0;t<=OrdersTotal();t++)
      {
@@ -491,7 +492,7 @@ int reinit()
    if(k!=3)
      {
 
-      Print("Waiting for mothership - pausing 15 minutes before retry");
+      Print("No repsonse from mothership - pausing 15 minutes before retry");
       Sleep(900000);
       reinit();
 
@@ -579,9 +580,8 @@ void OnTick()
       //Print("Withdraw to bank - ",bankIt);
       FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=Withdrawl Withdrawl="+DoubleToStr(bankIt,2));
 
-      //string sendUrl="http://kmug.ddns.net/elpheba/"+DoubleToStr(AccountNumber(),0)+"/withdrawl/"+DoubleToStr((simEquity()*100),0)+"/"+DoubleToStr((bankIt*100),0);
-      // no longer do withdrawls automatically as we won't be able to do it in live. So get splunk to Send an email requesting a transfer instead.
-      // sendWithdrawl=(GrabWeb(sendUrl,simEquity()));
+      string sendUrl="http://kmug.ddns.net/elpheba/"+DoubleToStr(AccountNumber(),0)+"/completed/"+DoubleToStr((simEquity()*100),0)+"/";
+      string sendWithdrawl=(GrabWeb(sendUrl,simEquity()));
 
       //Print("Web request - ",sendUrl);
       Sleep(300000); // pause 5 minutes to let mothership update
