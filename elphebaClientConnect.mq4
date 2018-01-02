@@ -15,7 +15,7 @@
 */
 
 double    LotPrice=1; // baby steps
-double version=1.18;
+double version=1.19;
 
 //--- input parameters
 extern double    BuyPoint=15;
