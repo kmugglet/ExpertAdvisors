@@ -15,7 +15,7 @@
 */
 
 double    LotPrice=1; // baby steps
-double version = 1.18;
+double version=1.18;
 
 //--- input parameters
 extern double    BuyPoint=15;
@@ -453,21 +453,31 @@ int reinit()
 
 // contact mothership for instructions
 // expecting a csv string of CloseUp, Withdrawls,Deposits
-
    string acctUrl="http://kmug.ddns.net/elpheba/"+DoubleToStr(AccountNumber(),0)+"/start/";
-
-   string instructions=GrabWeb(acctUrl,simEquity());
-   instructions=StringTrimRight(StringTrimLeft(instructions));
-
    string sep=",";                // A separator as a character
    ushort u_sep;                  // The code of the separator character
    string result[];               // An array to get strings
-//--- Get the separator code
-   u_sep=StringGetCharacter(sep,0);
-//--- Split the string to substrings
-   int k=StringSplit(instructions,u_sep,result);
-//--- Show a comment
-   PrintFormat("Strings obtained: %d. Used separator '%s' with the code %d",k,sep,u_sep);
+   int k=0;
+   while(k!=3)
+     {
+
+      string instructions=GrabWeb(acctUrl,simEquity());
+      instructions=StringTrimRight(StringTrimLeft(instructions));
+
+      //--- Get the separator code
+      u_sep=StringGetCharacter(sep,0);
+      //--- Split the string to substrings
+      k=StringSplit(instructions,u_sep,result);
+      //--- Show a comment
+      PrintFormat("Strings obtained: %d. Used separator '%s' with the code %d",k,sep,u_sep);
+      if(k!=3)
+        {
+
+         Print("No repsonse from mothership - pausing 5 minutes before retry");
+         Sleep(300000);
+
+        }
+     }
 //--- Now output all obtained strings
    if(k>0)
      {
@@ -489,14 +499,6 @@ int reinit()
    bNewWeek();
    bNewMin();
 
-   if(k!=3)
-     {
-
-      Print("No repsonse from mothership - pausing 15 minutes before retry");
-      Sleep(900000);
-      reinit();
-
-     }
    increaseTarget=simBalance()*0.01;
    EquityCheck=simEquity()*0.85;
    LotPrice=(simEquity()/300);
@@ -584,7 +586,7 @@ void OnTick()
       string sendWithdrawl=(GrabWeb(sendUrl,simEquity()));
 
       //Print("Web request - ",sendUrl);
-      Sleep(300000); // pause 5 minutes to let mothership update
+      Sleep(3600000); // pause 60 minutes to allow manual funds transfer
       reinit();
      }
 
