@@ -15,7 +15,7 @@
 */
 
 double    LotPrice=1; // baby steps
-double version=1.19;
+double version=1.20;
 
 //--- input parameters
 extern double    BuyPoint=15;
@@ -48,13 +48,13 @@ int      oldOrdersTotal=0,oldHistoryTotal=0,oldMaxTicket=0;
 double   Lot,StartBalance,Withdrawls,WeeklyWithdrawl,Deposits,updateEquity,increaseTarget;
 bool     rsi_swap=true;
 bool     this_rsi,last_rsi,stoch_buy,stoch_sell,close_up=false,close_email=false,bNB,bM1,bW1;
-bool     ma_close,profit_close[99],trigger_reached[99],order_exists[99],res;
-double   current_profit[99],tkt_open[99],tkt_high[99],tkt_low[99],tkt_close[99];
-int      hedge_tkt[99],h_tkt;
+bool     ma_close,profit_close[999],trigger_reached[999],order_exists[999],res;
+double   current_profit[999],tkt_open[999],tkt_high[999],tkt_low[999],tkt_close[999];
+int      hedge_tkt[999],h_tkt;
 double   symbol_profit;
-double   f_profit[99];
+double   f_profit[999];
 double   RSIprev;
-int      open_trades[100],open_tickets;
+int      open_trades[1000],open_tickets;
 double   iStochvalue=0;
 double   RSInow,RSIlast;
 
@@ -473,7 +473,7 @@ int reinit()
       if(k!=3)
         {
 
-         Print("No repsonse from mothership - pausing 5 minutes before retry");
+         FileWrite(handle,"Time="+DoubleToStr(correctTime(OrderCloseTime()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+OrderSymbol()+" Event=Message Messaage='No valid repsonse from mothership - pausing 5 minutes before retry - are we waiting for funds transfer after closeUp?'");
          Sleep(300000);
 
         }
