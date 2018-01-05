@@ -586,7 +586,6 @@ void OnTick()
       string sendWithdrawl=(GrabWeb(sendUrl,simEquity()));
 
       //Print("Web request - ",sendUrl);
-      Sleep(3600000); // pause 60 minutes to allow manual funds transfer
       reinit();
      }
 
