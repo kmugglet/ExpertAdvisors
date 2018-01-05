@@ -67,9 +67,8 @@ void OnDeinit(const int reason)
 double correctTime(double time_value)
   {
 // for some reason all epoch times are 2 hours ahead..... Seriously, how can you get epoch wrong..
-//   return time_value-(3600*2);
-// European summer time, 3 hours ahead
-   return time_value-(3600*3);
+   int difference=(int)(TimeCurrent()-TimeGMT());
+   return time_value-(difference);
   }
 //+------------------------------------------------------------------+
 //| Timer function                                                   |

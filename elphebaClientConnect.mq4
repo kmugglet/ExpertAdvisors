@@ -359,8 +359,6 @@ double correctTime(double time_value)
 // for some reason all epoch times are 2 hours ahead..... Seriously, how can you get epoch wrong..
    int difference=(int)(TimeCurrent()-TimeGMT());
    return time_value-(difference);
-// European summer time, 3 hours ahead
-//   return time_value-(3600*3);
   }
 //+------------------------------------------------------------------+
 //| tidy up trades function                                          |
