@@ -413,10 +413,9 @@ void OnInit()
      }
 
 // until we get the go ahead from mothership, startup with globalVar set to pasue other EA
-   if(GlobalVariableTemp("globalCloseUp"))
-     {
-      datetime setTime=GlobalVariableSet("globalCloseUp",1);
-     };
+   bool test=GlobalVariableTemp("globalCloseUp");
+
+   datetime setTime=GlobalVariableSet("globalCloseUp",1);
 
    filename="Tickets_"+DoubleToStr(AccountNumber(),0)+".log";
    handle=FileOpen(filename,FILE_CSV|FILE_WRITE|FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_CSV);
@@ -481,6 +480,7 @@ int reinit()
       if(k!=3)
         {
          Print("globalCloseUp status = ",GlobalVariableGet("globalCloseUp"));
+         datetime setTime=GlobalVariableSet("globalCloseUp",1);
 
          FileWrite(handle,"Time="+DoubleToStr(correctTime(OrderCloseTime()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+OrderSymbol()+" Event=Message Messaage='No valid repsonse from mothership - pausing 5 minutes before retry - are we waiting for funds transfer after closeUp?'");
          Sleep(60000);
@@ -555,12 +555,7 @@ void OnTick()
    bNB = bNewBar();
    bM1 = bNewMin();
    bW1 = bNewWeek();
-   if(GlobalVariableGet("globalCloseUp")==1)
-     {
-      close_up=true;
-        } else {
-      close_up=false;
-     };
+
    updateEquity=0;
    if(bM1 && !close_up && !IsTesting())
      {
@@ -592,7 +587,6 @@ void OnTick()
    if(close_up && OrdersTotal()==0)
      {
       Print("****** Close out completed, balance=",simBalance()," ***********");
-      datetime setTime=GlobalVariableSet("globalCloseUp",0);
       close_up=false;
       SendNotification("Close up completed @ "+DoubleToStr(simEquity(),2));
       FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=CloseUp_Complete Equity="+DoubleToStr(simEquity(),2));
