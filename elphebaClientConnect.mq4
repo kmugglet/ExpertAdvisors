@@ -412,6 +412,12 @@ void OnInit()
       suffix="";
      }
 
+// until we get the go ahead from mothership, startup with globalVar set to pasue other EA
+   if(GlobalVariableTemp("globalCloseUp"))
+     {
+      datetime setTime=GlobalVariableSet("globalCloseUp",1);
+     };
+
    filename="Tickets_"+DoubleToStr(AccountNumber(),0)+".log";
    handle=FileOpen(filename,FILE_CSV|FILE_WRITE|FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_CSV);
 
@@ -458,11 +464,6 @@ int reinit()
    string result[];               // An array to get strings
 
 
-                                  // until we get the go ahead from mothership, startup with globalVar set to pasue other EA
-   if(GlobalVariableTemp("globalCloseUp"))
-     {
-      datetime setTime=GlobalVariableSet("globalCloseUp",1);
-     };
 
    int k=0;
    while(k!=3)
@@ -545,7 +546,6 @@ void OnDeinit(const int reason)
    FileClose(handle);
    Print("Final simEquity : ",simEquity(),", simBalance : ",simBalance(),", Withdrawls : ",Withdrawls);
    EventKillTimer();
-   datetime setTime=GlobalVariableSet("globalCloseUp",0);
 
    return;
   }
