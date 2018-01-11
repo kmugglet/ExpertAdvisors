@@ -47,7 +47,8 @@ int      oldOrdersTotal=0,oldHistoryTotal=0,oldMaxTicket=0;
 
 double   Lot,StartBalance,Withdrawls,WeeklyWithdrawl,Deposits,updateEquity,increaseTarget;
 bool     rsi_swap=true;
-bool     this_rsi,last_rsi,stoch_buy,stoch_sell,close_up=false,close_email=false,bNB,bM1,bW1;
+bool     close_up=false;
+bool     this_rsi,last_rsi,stoch_buy,stoch_sell,close_email=false,bNB,bM1,bW1;
 bool     ma_close,profit_close[999],trigger_reached[999],order_exists[999],res;
 double   current_profit[999],tkt_open[999],tkt_high[999],tkt_low[999],tkt_close[999];
 int      hedge_tkt[999],h_tkt;
@@ -472,7 +473,7 @@ int reinit()
         {
 
          FileWrite(handle,"Time="+DoubleToStr(correctTime(OrderCloseTime()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+OrderSymbol()+" Event=Message Messaage='No valid repsonse from mothership - pausing 5 minutes before retry - are we waiting for funds transfer after closeUp?'");
-         Sleep(300000);
+         Sleep(60000);
 
         }
      }
@@ -512,6 +513,10 @@ int reinit()
    drop_profit=dp;
    stop_loss=sl;
    close_up=false;
+   if(GlobalVariableTemp("globalCloseUp"))
+     {
+      datetime setTime=GlobalVariableSet("globalCloseUp",0);
+     };
    Print("CloseOutPrice=",CloseOutPrice,"  LotPrice=",LotPrice,"  Lot=",Lot,"  trigger_profit=",trigger_profit,"  drop_profit=",drop_profit);
    FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=Initialize Equity="+DoubleToStr(simEquity(),2)+" CloseUp="+DoubleToStr(CloseOutPrice,2)+" IncreaseTarget="+DoubleToStr(increaseTarget,2));
    if(!IsTesting()) FileFlush(handle);
@@ -528,6 +533,7 @@ void OnDeinit(const int reason)
    FileClose(handle);
    Print("Final simEquity : ",simEquity(),", simBalance : ",simBalance(),", Withdrawls : ",Withdrawls);
    EventKillTimer();
+   datetime setTime=GlobalVariableSet("globalCloseUp",0);
 
    return;
   }
@@ -540,7 +546,12 @@ void OnTick()
    bNB = bNewBar();
    bM1 = bNewMin();
    bW1 = bNewWeek();
-
+   if(GlobalVariableGet("globalCloseUp")==1)
+     {
+      close_up=true;
+        } else {
+      close_up=false;
+     };
    updateEquity=0;
    if(bM1 && !close_up && !IsTesting())
      {
@@ -562,6 +573,7 @@ void OnTick()
 
    if(simEquity()>CloseOutPrice && !close_up && closeTrades)
      {
+      datetime setTime=GlobalVariableSet("globalCloseUp",1);
       close_up=true;
       SendNotification("Close up reached @ "+DoubleToStr(simEquity(),2));
       Print("***** Close out price reached, ",simEquity()," ********");
@@ -571,6 +583,7 @@ void OnTick()
    if(close_up && OrdersTotal()==0)
      {
       Print("****** Close out completed, balance=",simBalance()," ***********");
+      datetime setTime=GlobalVariableSet("globalCloseUp",0);
       close_up=false;
       SendNotification("Close up completed @ "+DoubleToStr(simEquity(),2));
       FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=CloseUp_Complete Equity="+DoubleToStr(simEquity(),2));

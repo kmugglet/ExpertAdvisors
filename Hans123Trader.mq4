@@ -14,6 +14,7 @@ extern double TrailingStop=30;
 extern double TakeProfit=140;
 extern double InitialStopLoss=40;
 //----
+bool close_up=false;
 double Lots=0.05;
 datetime bartime=0;
 double Slippage=3;
@@ -22,6 +23,18 @@ double Slippage=3;
 //+------------------------------------------------------------------+
 int start()
   {
+     if(GlobalVariableGet("globalCloseUp")==1)
+     {
+      close_up=true;
+        } else {
+      close_up=false;
+     };
+   if(close_up) 
+     {
+      Sleep(60000);
+      return 0;
+     }
+
    int cnt, ticket, err, cmd;
    int MagicNumber;
    double ts, tp, LowestPrice, HighestPrice, Price;
