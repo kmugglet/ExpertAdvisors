@@ -517,6 +517,9 @@ int reinit()
      {
       datetime setTime=GlobalVariableSet("globalCloseUp",0);
      };
+
+   Print("globalCloseUp status = ",GlobalVariableGet("globalCloseUp"));
+   
    Print("CloseOutPrice=",CloseOutPrice,"  LotPrice=",LotPrice,"  Lot=",Lot,"  trigger_profit=",trigger_profit,"  drop_profit=",drop_profit);
    FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=Initialize Equity="+DoubleToStr(simEquity(),2)+" CloseUp="+DoubleToStr(CloseOutPrice,2)+" IncreaseTarget="+DoubleToStr(increaseTarget,2));
    if(!IsTesting()) FileFlush(handle);

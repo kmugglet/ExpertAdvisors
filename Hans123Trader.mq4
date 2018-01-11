@@ -18,6 +18,12 @@ bool close_up=false;
 double Lots=0.05;
 datetime bartime=0;
 double Slippage=3;
+
+void OnInit()
+{
+   Print("globalCloseUp status = ",GlobalVariableGet("globalCloseUp"));
+}
+
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
