@@ -456,6 +456,14 @@ int reinit()
    string sep=",";                // A separator as a character
    ushort u_sep;                  // The code of the separator character
    string result[];               // An array to get strings
+
+
+                                  // until we get the go ahead from mothership, startup with globalVar set to pasue other EA
+   if(GlobalVariableTemp("globalCloseUp"))
+     {
+      datetime setTime=GlobalVariableSet("globalCloseUp",0);
+     };
+
    int k=0;
    while(k!=3)
      {
@@ -471,6 +479,7 @@ int reinit()
       PrintFormat("Strings obtained: %d. Used separator '%s' with the code %d",k,sep,u_sep);
       if(k!=3)
         {
+         Print("globalCloseUp status = ",GlobalVariableGet("globalCloseUp"));
 
          FileWrite(handle,"Time="+DoubleToStr(correctTime(OrderCloseTime()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+OrderSymbol()+" Event=Message Messaage='No valid repsonse from mothership - pausing 5 minutes before retry - are we waiting for funds transfer after closeUp?'");
          Sleep(60000);
@@ -519,7 +528,7 @@ int reinit()
      };
 
    Print("globalCloseUp status = ",GlobalVariableGet("globalCloseUp"));
-   
+
    Print("CloseOutPrice=",CloseOutPrice,"  LotPrice=",LotPrice,"  Lot=",Lot,"  trigger_profit=",trigger_profit,"  drop_profit=",drop_profit);
    FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=Initialize Equity="+DoubleToStr(simEquity(),2)+" CloseUp="+DoubleToStr(CloseOutPrice,2)+" IncreaseTarget="+DoubleToStr(increaseTarget,2));
    if(!IsTesting()) FileFlush(handle);
