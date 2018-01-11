@@ -523,10 +523,7 @@ int reinit()
    drop_profit=dp;
    stop_loss=sl;
    close_up=false;
-   if(GlobalVariableTemp("globalCloseUp"))
-     {
-      datetime setTime=GlobalVariableSet("globalCloseUp",0);
-     };
+   datetime setTime=GlobalVariableSet("globalCloseUp",0);
 
    Print("globalCloseUp status = ",GlobalVariableGet("globalCloseUp"));
 
