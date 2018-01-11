@@ -461,7 +461,7 @@ int reinit()
                                   // until we get the go ahead from mothership, startup with globalVar set to pasue other EA
    if(GlobalVariableTemp("globalCloseUp"))
      {
-      datetime setTime=GlobalVariableSet("globalCloseUp",0);
+      datetime setTime=GlobalVariableSet("globalCloseUp",1);
      };
 
    int k=0;
