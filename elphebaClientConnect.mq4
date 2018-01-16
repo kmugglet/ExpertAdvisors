@@ -14,8 +14,9 @@
    Any data and information is provided 'as is' solely for informational purposes, and is not intended for trading purposes or advice."
 */
 
-double    LotPrice=1; // baby steps
-double version=1.20;
+double   LotPrice=1; // baby steps
+double   version=1.20;
+
 
 //--- input parameters
 extern double    BuyPoint=15;
@@ -315,7 +316,7 @@ void closeAll()
 
 void ExportTrades()
   {
-   FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=Report Equity="+DoubleToStr(simEquity(),2)+" CloseUp="+DoubleToStr(CloseOutPrice,2)+" FreeMargin="+DoubleToStr(simMargin(),2)+" MinEquity="+DoubleToStr(EquityCheck,2)+" Deposits="+DoubleToStr(Deposits,2)+" Withdrawls="+DoubleToStr(Withdrawls,2)+" RealEquity="+DoubleToStr(AccountEquity(),2)+" Version="+DoubleToStr(version*100,0));
+   FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=Report Equity="+DoubleToStr(simEquity(),2)+" CloseUp="+DoubleToStr(CloseOutPrice,2)+" FreeMargin="+DoubleToStr(simMargin(),2)+" MinEquity="+DoubleToStr(EquityCheck,2)+" Deposits="+DoubleToStr(Deposits,2)+" Withdrawls="+DoubleToStr(Withdrawls,2)+" RealEquity="+DoubleToStr(AccountEquity(),2)+" Version="+DoubleToStr(version,2)+" CloseUp="+DoubleToStr(close_up));
 //Print("Equity=",DoubleToStr(simEquity(),2)," Deposits=",DoubleToStr(Deposits,2)," Withdrawls=",DoubleToStr(Withdrawls,2));
    for(int t=0;t<=OrdersTotal();t++)
      {
@@ -412,6 +413,9 @@ void OnInit()
       suffix="";
      }
 
+
+   EventSetTimer(60);
+   
 // until we get the go ahead from mothership, startup with globalVar set to pasue other EA
    bool test=GlobalVariableTemp("globalCloseUp");
 
@@ -607,7 +611,7 @@ void OnTick()
 
    if(OrdersTotal()>0 && closeTrades) CheckForClose();
 
-   if(bM1) ExportTrades();
+   //if(bM1) ExportTrades();
 
    if(bNB && !close_up && openTrades && OrdersTotal()<max_trades && simMargin()>EquityCheck) CheckForOpen(); // This is more conservative as it takes into account moneys used in the trade itself.
 
@@ -616,6 +620,10 @@ void OnTick()
   }
 //+------------------------------------------------------------------+
 
+void OnTimer()
+   {
+   ExportTrades();
+   }
 double simEquity()
   {
 
