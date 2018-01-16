@@ -487,7 +487,7 @@ int reinit()
          datetime setTime=GlobalVariableSet("globalCloseUp",1);
 
          FileWrite(handle,"Time="+DoubleToStr(correctTime(OrderCloseTime()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+OrderSymbol()+" Event=Message Messaage='No valid repsonse from mothership - pausing 5 minutes before retry - are we waiting for funds transfer after closeUp?'");
-         Sleep(60000);
+         mySleep(60);  // don't sleep for a whole 60 seconds , sleep fpr 1 sec 60 times, as this lets the interrupt for OnTimer work (I hope)
 
         }
      }
@@ -669,3 +669,11 @@ string GrabWeb(string strUrl,double currentEquity)
    return(response);
   }
 //+--------------------------------------------------------------+
+void mySleep(int seconds) 
+{
+   for(int tick=0;tick<=seconds;tick++)
+      {
+      Sleep(1000); 
+      }
+
+}
