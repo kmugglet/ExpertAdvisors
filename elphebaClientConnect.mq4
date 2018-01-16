@@ -488,7 +488,7 @@ int reinit()
 
          FileWrite(handle,"Time="+DoubleToStr(correctTime(OrderCloseTime()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+OrderSymbol()+" Event=Message Messaage='No valid repsonse from mothership - pausing 5 minutes before retry - are we waiting for funds transfer after closeUp?'");
          mySleep(60);  // don't sleep for a whole 60 seconds , sleep fpr 1 sec 60 times, as this lets the interrupt for OnTimer work (I hope)
-
+         ExportTrades(); // yeah still no OnTimer so we'll just report while we wait for the mothership
         }
      }
 //--- Now output all obtained strings
