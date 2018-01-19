@@ -265,7 +265,7 @@ void CheckForClose()
                     {
                      order_points=(OrderProfit()/OrderLots());
                      //Print("Modify - ",tkt);
-                     FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+OrderSymbol()+" Event=Modify_Trade TicketNumber="+DoubleToStr(found_tkt,0)+" OrderType="+DoubleToStr(OrderType(),0)+" OpenPrice="+DoubleToStr(OrderOpenPrice(),5)+" Lots="+DoubleToStr(OrderLots(),2)+" TP="+DoubleToStr(OrderTakeProfit(),5)+" SL="+DoubleToStr(OrderStopLoss(),5)+" Profit="+DoubleToStr(OrderProfit(),2)+" Points="+DoubleToStr(order_points,2));
+                     FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+OrderSymbol()+" Event=Modify_Trade TicketNumber="+DoubleToStr(found_tkt,0)+" OrderType="+DoubleToStr(OrderType(),0)+" OpenPrice="+DoubleToStr(OrderOpenPrice(),5)+" CurrentPrice="+DoubleToStr(ask_price,5)+" Lots="+DoubleToStr(OrderLots(),2)+" TP="+DoubleToStr(OrderTakeProfit(),5)+" SL="+DoubleToStr(OrderStopLoss(),5)+" Profit="+DoubleToStr(OrderProfit(),2)+" Points="+DoubleToStr(order_points,2));
                        } else {
                      Print("Order modify failed on buy tkt ",found_tkt);
                     }
@@ -279,7 +279,7 @@ void CheckForClose()
                     {
                      order_points=(OrderProfit()/OrderLots());
                      //Print("Modify - ",tkt);
-                     FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+OrderSymbol()+" Event=Modify_Trade TicketNumber="+DoubleToStr(found_tkt,0)+" OrderType="+DoubleToStr(OrderType(),0)+" OpenPrice="+DoubleToStr(OrderOpenPrice(),5)+" Lots="+DoubleToStr(OrderLots(),2)+" TP="+DoubleToStr(OrderTakeProfit(),5)+" SL="+DoubleToStr(OrderStopLoss(),5)+" Profit="+DoubleToStr(OrderProfit(),2)+" Points="+DoubleToStr(order_points,2));
+                     FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+OrderSymbol()+" Event=Modify_Trade TicketNumber="+DoubleToStr(found_tkt,0)+" OrderType="+DoubleToStr(OrderType(),0)+" OpenPrice="+DoubleToStr(OrderOpenPrice(),5)+" CurrentPrice="+DoubleToStr(bid_price,5)+" Lots="+DoubleToStr(OrderLots(),2)+" TP="+DoubleToStr(OrderTakeProfit(),5)+" SL="+DoubleToStr(OrderStopLoss(),5)+" Profit="+DoubleToStr(OrderProfit(),2)+" Points="+DoubleToStr(order_points,2));
                        } else {
                      Print("Order modify failed on sell tkt ",found_tkt);
                     }
