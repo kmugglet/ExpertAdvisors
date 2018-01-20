@@ -17,7 +17,6 @@
 double   LotPrice=1; // baby steps
 double   version=1.20;
 
-
 //--- input parameters
 extern double    BuyPoint=15;
 extern double    SellPoint=85;
@@ -413,9 +412,8 @@ void OnInit()
       suffix="";
      }
 
-
    EventSetTimer(60);
-   
+
 // until we get the go ahead from mothership, startup with globalVar set to pasue other EA
    bool test=GlobalVariableTemp("globalCloseUp");
 
@@ -561,23 +559,6 @@ void OnTick()
    bW1 = bNewWeek();
 
    updateEquity=0;
-   if(bM1 && !close_up && !IsTesting())
-     {
-      string acctUrl="http://kmug.ddns.net/elpheba/"+DoubleToStr(AccountNumber(),0)+"/";
-      string checkForUpdate=GrabWeb(acctUrl,simEquity());
-      string sep=",";                // A separator as a character
-      ushort u_sep;                  // The code of the separator character
-      string result[];               // An array to get strings
-      //--- Get the separator code
-      u_sep=StringGetCharacter(sep,0);
-      //--- Split the string to substrings
-      int k=StringSplit(checkForUpdate,u_sep,result);
-      if(k==2)
-        {
-         Withdrawls=(double) result[0];
-         Deposits=(double) result[1];
-        }
-     }
 
    if(simEquity()>CloseOutPrice && !close_up && closeTrades)
      {
@@ -611,7 +592,7 @@ void OnTick()
 
    if(OrdersTotal()>0 && closeTrades) CheckForClose();
 
-   //if(bM1) ExportTrades();
+//if(bM1) ExportTrades();
 
    if(bNB && !close_up && openTrades && OrdersTotal()<max_trades && simMargin()>EquityCheck) CheckForOpen(); // This is more conservative as it takes into account moneys used in the trade itself.
 
@@ -621,9 +602,30 @@ void OnTick()
 //+------------------------------------------------------------------+
 
 void OnTimer()
-   {
+  {
    ExportTrades();
-   }
+   if(!close_up && !IsTesting())
+     {
+      string acctUrl="http://kmug.ddns.net/elpheba/"+DoubleToStr(AccountNumber(),0)+"/";
+      string checkForUpdate=GrabWeb(acctUrl,simEquity());
+      string sep=",";                // A separator as a character
+      ushort u_sep;                  // The code of the separator character
+      string result[];               // An array to get strings
+      //--- Get the separator code
+      u_sep=StringGetCharacter(sep,0);
+      //--- Split the string to substrings
+      int k=StringSplit(checkForUpdate,u_sep,result);
+      if(k==2)
+        {
+         Withdrawls=(double) result[0];
+         Deposits=(double) result[1];
+        }
+     }
+
+  }
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 double simEquity()
   {
 
@@ -669,11 +671,12 @@ string GrabWeb(string strUrl,double currentEquity)
    return(response);
   }
 //+--------------------------------------------------------------+
-void mySleep(int seconds) 
-{
+void mySleep(int seconds)
+  {
    for(int tick=0;tick<=seconds;tick++)
-      {
-      Sleep(1000); 
-      }
+     {
+      Sleep(1000);
+     }
 
-}
+  }
+//+------------------------------------------------------------------+
