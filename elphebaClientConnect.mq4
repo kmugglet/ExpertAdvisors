@@ -15,7 +15,7 @@
 */
 
 double   LotPrice=1; // baby steps
-double   version=1.20;
+int   version=20180125;
 
 //--- input parameters
 extern double    BuyPoint=15;
@@ -512,7 +512,7 @@ int reinit()
 
    increaseTarget=simBalance()*0.01;
    EquityCheck=simEquity()*0.85;
-   LotPrice=(simEquity()/300);
+   LotPrice=(simEquity()/1000);
 
    symbol_profit=0;
    Lot=NormalizeDouble(LotPrice/100,2);
