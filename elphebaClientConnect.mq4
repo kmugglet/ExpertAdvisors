@@ -151,7 +151,7 @@ void CheckForOpen()
         {
          take = bid_price - ((tp + (2*dp))* points);
          stop = ask_price + (sl * points);
-         res=OrderSend(Check_Symbol,OP_SELL,Lot,bid_price,3,stop,take,NULL,MAGICMA,0,Red);
+         res=OrderSend(Check_Symbol,OP_SELL,Lot,bid_price,3,NULL,take,NULL,MAGICMA,0,Red);
          if(res)
            {
             FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+Check_Symbol+" Event=New_Trade TicketNumber="+DoubleToStr(res,0)+" OrderType="+DoubleToStr(OrderType(),0)+" OpenPrice="+DoubleToStr(OrderOpenPrice(),5)+" Lots="+DoubleToStr(OrderLots(),2)+" TP="+DoubleToStr(OrderTakeProfit(),5)+" SL="+DoubleToStr(OrderStopLoss(),5));
@@ -163,7 +163,7 @@ void CheckForOpen()
         {
          take = ask_price + ((tp + (2*dp))* points);
          stop = bid_price - (sl * points);
-         res=OrderSend(Check_Symbol,OP_BUY,Lot,ask_price,3,stop,take,NULL,MAGICMA,0,Green);
+         res=OrderSend(Check_Symbol,OP_BUY,Lot,ask_price,3,NULL,take,NULL,MAGICMA,0,Green);
          if(res)
            {
             FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+Check_Symbol+" Event=New_Trade TicketNumber="+DoubleToStr(res,0)+" OrderType="+DoubleToStr(OrderType(),0)+" OpenPrice="+DoubleToStr(OrderOpenPrice(),5)+" Lots="+DoubleToStr(OrderLots(),2)+" TP="+DoubleToStr(OrderTakeProfit(),5)+" SL="+DoubleToStr(OrderStopLoss(),5));
