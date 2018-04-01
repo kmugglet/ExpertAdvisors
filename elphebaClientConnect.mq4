@@ -15,7 +15,7 @@
 */
 
 double   LotPrice=1; // baby steps
-int   version=20180125;
+int   version=20180401;
 
 //--- input parameters
 extern double    BuyPoint=15;
@@ -315,7 +315,7 @@ void closeAll()
 
 void ExportTrades()
   {
-   FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=Report Equity="+DoubleToStr(simEquity(),2)+" CloseUp="+DoubleToStr(CloseOutPrice,2)+" FreeMargin="+DoubleToStr(simMargin(),2)+" MinEquity="+DoubleToStr(EquityCheck,2)+" Deposits="+DoubleToStr(Deposits,2)+" Withdrawls="+DoubleToStr(Withdrawls,2)+" RealEquity="+DoubleToStr(AccountEquity(),2)+" RealBalance="+DoubleToStr(AccountBalance(),2)+" Version="+DoubleToStr(version,2)+" closeUpIndicator="+DoubleToStr(GlobalVariableGet("globalCloseUp"),0));
+   FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=Report Equity="+DoubleToStr(simEquity(),2)+" CloseUp="+DoubleToStr(CloseOutPrice,2)+" FreeMargin="+DoubleToStr(simMargin(),2)+" MinEquity="+DoubleToStr(EquityCheck,2)+" Deposits="+DoubleToStr(Deposits,2)+" Withdrawls="+DoubleToStr(Withdrawls,2)+" RealEquity="+DoubleToStr(AccountEquity(),2)+" Balance="+DoubleToStr(simBalance(),2)+" RealBalance="+DoubleToStr(AccountBalance(),2)+" Version="+DoubleToStr(version,2)+" closeUpIndicator="+DoubleToStr(GlobalVariableGet("globalCloseUp"),0));
 //Print("Equity=",DoubleToStr(simEquity(),2)," Deposits=",DoubleToStr(Deposits,2)," Withdrawls=",DoubleToStr(Withdrawls,2));
    for(int t=0;t<=OrdersTotal();t++)
      {
