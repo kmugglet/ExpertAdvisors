@@ -47,7 +47,7 @@ int      oldOrdersTotal=0,oldHistoryTotal=0,oldMaxTicket=0;
 
 double   Lot,StartBalance,Withdrawls,WeeklyWithdrawl,Deposits,updateEquity,increaseTarget;
 bool     rsi_swap=true;
-bool     close_up=false;
+bool     close_up=false,pause=false;
 bool     this_rsi,last_rsi,stoch_buy,stoch_sell,close_email=false,bNB,bM1,bW1;
 bool     ma_close,profit_close[999],trigger_reached[999],order_exists[999],res;
 double   current_profit[999],tkt_open[999],tkt_high[999],tkt_low[999],tkt_close[999];
@@ -113,6 +113,7 @@ void CheckForOpen()
   {
 
    Print("Check for Openings");
+   datetime setTime=GlobalVariableSet("globalCloseUp",2);
 
    for(int a=0; a<ArraySize(SymbolPairs); a++)
      {
@@ -594,7 +595,12 @@ void OnTick()
 
 //if(bM1) ExportTrades();
 
-   if(bNB && !close_up && openTrades && OrdersTotal()<max_trades && simMargin()>EquityCheck) CheckForOpen(); // This is more conservative as it takes into account moneys used in the trade itself.
+   if(bNB && !close_up && !pause && openTrades && OrdersTotal()<max_trades && simMargin()>EquityCheck) CheckForOpen(); // This is more conservative as it takes into account moneys used in the trade itself.
+
+   if(bNB && !close_up && simMargin()<EquityCheck)
+     {
+      datetime setTime=GlobalVariableSet("globalCloseUp",2);
+     }    // If less than equityCheck then pause opening new trades.
 
    if(!IsTesting()) FileFlush(handle);
 
