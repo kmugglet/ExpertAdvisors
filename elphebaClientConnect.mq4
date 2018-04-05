@@ -113,7 +113,7 @@ void CheckForOpen()
   {
 
    Print("Check for Openings");
-   datetime setTime=GlobalVariableSet("globalCloseUp",2);
+   datetime setTime=GlobalVariableSet("globalCloseUp",0);
 
    for(int a=0; a<ArraySize(SymbolPairs); a++)
      {
