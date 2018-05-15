@@ -90,13 +90,21 @@ void OnTick()
          double iStochValue=iStochastic(Check_Symbol,NULL,5,3,3,MODE_SMMA,1,MODE_MAIN,1);
          double iCciValue=iCCI(Check_Symbol,NULL,RSIperiod,AppliedPrice,0);
          double iVol=iVolume(Check_Symbol,NULL,0);
-
+         double iSMA50=iMA(Check_Symbol,NULL,50,0,MODE_SMA,PRICE_CLOSE,0);
+         double iSMA100=iMA(Check_Symbol,NULL,100,0,MODE_SMA,PRICE_CLOSE,0);
+         double iSMA150=iMA(Check_Symbol,NULL,150,0,MODE_SMA,PRICE_CLOSE,0);
+         double iSMA200=iMA(Check_Symbol,NULL,200,0,MODE_SMA,PRICE_CLOSE,0);
+         
          if(new_time>LastTick[a])
            {
             FileWrite(handle,new_time+",BID,"+Check_Symbol+"i,"+DoubleToString(last_tick.bid,5));
             FileWrite(handle,new_time+",ASK,"+Check_Symbol+"i,"+DoubleToString(last_tick.ask,5));
             FileWrite(handle,new_time+",RSI,"+Check_Symbol+"i,"+DoubleToString(RSInow,5));
             FileWrite(handle,new_time+",STOCH,"+Check_Symbol+"i,"+DoubleToString(iStochValue,5));
+            FileWrite(handle,new_time+",SMA50,"+Check_Symbol+"i,"+DoubleToString(iSMA50,5));
+            FileWrite(handle,new_time+",SMA100,"+Check_Symbol+"i,"+DoubleToString(iSMA100,5));
+            FileWrite(handle,new_time+",SMA150,"+Check_Symbol+"i,"+DoubleToString(iSMA150,5));
+            FileWrite(handle,new_time+",SMA200,"+Check_Symbol+"i,"+DoubleToString(iSMA200,5));
             FileWrite(handle,new_time+",CCI,"+Check_Symbol+"i,"+DoubleToString(iCciValue,5));
             FileWrite(handle,new_time+",VOL,"+Check_Symbol+"i,"+DoubleToString(iVol,2));
             if(IsTesting())
