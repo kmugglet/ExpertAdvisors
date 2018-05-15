@@ -31,8 +31,22 @@ datetime TickTime;
 string   Check_Symbol,suffix="";
 string fileName="SPLUNK_MT_Log.csv";
 //+------------------------------------------------------------------+
+//| On new hour bar                                                                 |
+//+------------------------------------------------------------------+
+bool       bNewHour()
+  {
+
+   static datetime iTime_2=0;
+
+   if(iTime_2<iTime(NULL,PERIOD_H1,0))
+     { iTime_2=iTime(NULL,PERIOD_H1,0); return(TRUE); }
+   else
+     { return(FALSE); }
+  }
+//+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+
+
 int OnInit()
   {
 //--- create timer
@@ -86,26 +100,29 @@ void OnTick()
       if(SymbolInfoTick(Check_Symbol,last_tick))
         {
          double new_time=correctTime(last_tick.time_msc/1000);
-         double RSInow=iRSI(Check_Symbol,60,RSIperiod,AppliedPrice,0);
-         double iStochValue=iStochastic(Check_Symbol,60,5,3,3,MODE_SMMA,1,MODE_MAIN,1);
-         double iCciValue=iCCI(Check_Symbol,60,RSIperiod,AppliedPrice,0);
-         double iVol=iVolume(Check_Symbol,60,0);
-         double iSMA50=iMA(Check_Symbol,60,50,0,MODE_SMA,PRICE_CLOSE,0);
-         double iSMA100=iMA(Check_Symbol,60,100,0,MODE_SMA,PRICE_CLOSE,0);
-         double iSMA150=iMA(Check_Symbol,60,150,0,MODE_SMA,PRICE_CLOSE,0);
-         double iSMA200=iMA(Check_Symbol,60,200,0,MODE_SMA,PRICE_CLOSE,0);
-         
+         double RSInow=iRSI(Check_Symbol,PERIOD_H1,RSIperiod,AppliedPrice,0);
+         double iStochValue=iStochastic(Check_Symbol,PERIOD_H1,5,3,3,MODE_SMMA,1,MODE_MAIN,1);
+         double iCciValue=iCCI(Check_Symbol,PERIOD_H1,RSIperiod,AppliedPrice,0);
+         double iVol=iVolume(Check_Symbol,PERIOD_H1,0);
+         double iSMA50=iMA(Check_Symbol,PERIOD_H1,50,0,MODE_SMA,PRICE_CLOSE,0);
+         double iSMA100=iMA(Check_Symbol,PERIOD_H1,100,0,MODE_SMA,PRICE_CLOSE,0);
+         double iSMA150=iMA(Check_Symbol,PERIOD_H1,150,0,MODE_SMA,PRICE_CLOSE,0);
+         double iSMA200=iMA(Check_Symbol,PERIOD_H1,200,0,MODE_SMA,PRICE_CLOSE,0);
+
          if(new_time>LastTick[a])
            {
             FileWrite(handle,new_time+",BID,"+Check_Symbol+"i,"+DoubleToString(last_tick.bid,5));
             FileWrite(handle,new_time+",ASK,"+Check_Symbol+"i,"+DoubleToString(last_tick.ask,5));
-            FileWrite(handle,new_time+",RSI,"+Check_Symbol+"i,"+DoubleToString(RSInow,5));
-            FileWrite(handle,new_time+",STOCH,"+Check_Symbol+"i,"+DoubleToString(iStochValue,5));
-            FileWrite(handle,new_time+",SMA50,"+Check_Symbol+"i,"+DoubleToString(iSMA50,5));
-            FileWrite(handle,new_time+",SMA100,"+Check_Symbol+"i,"+DoubleToString(iSMA100,5));
-            FileWrite(handle,new_time+",SMA150,"+Check_Symbol+"i,"+DoubleToString(iSMA150,5));
-            FileWrite(handle,new_time+",SMA200,"+Check_Symbol+"i,"+DoubleToString(iSMA200,5));
-            FileWrite(handle,new_time+",CCI,"+Check_Symbol+"i,"+DoubleToString(iCciValue,5));
+            if(bNewHour()) 
+              {
+               FileWrite(handle,new_time+",RSI,"+Check_Symbol+"i,"+DoubleToString(RSInow,5));
+               FileWrite(handle,new_time+",STOCH,"+Check_Symbol+"i,"+DoubleToString(iStochValue,5));
+               FileWrite(handle,new_time+",SMA50,"+Check_Symbol+"i,"+DoubleToString(iSMA50,5));
+               FileWrite(handle,new_time+",SMA100,"+Check_Symbol+"i,"+DoubleToString(iSMA100,5));
+               FileWrite(handle,new_time+",SMA150,"+Check_Symbol+"i,"+DoubleToString(iSMA150,5));
+               FileWrite(handle,new_time+",SMA200,"+Check_Symbol+"i,"+DoubleToString(iSMA200,5));
+               FileWrite(handle,new_time+",CCI,"+Check_Symbol+"i,"+DoubleToString(iCciValue,5));
+              }
             FileWrite(handle,new_time+",VOL,"+Check_Symbol+"i,"+DoubleToString(iVol,2));
             if(IsTesting())
               {
