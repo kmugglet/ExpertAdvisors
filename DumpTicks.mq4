@@ -86,14 +86,14 @@ void OnTick()
       if(SymbolInfoTick(Check_Symbol,last_tick))
         {
          double new_time=correctTime(last_tick.time_msc/1000);
-         double RSInow=iRSI(Check_Symbol,NULL,RSIperiod,AppliedPrice,0);
-         double iStochValue=iStochastic(Check_Symbol,NULL,5,3,3,MODE_SMMA,1,MODE_MAIN,1);
-         double iCciValue=iCCI(Check_Symbol,NULL,RSIperiod,AppliedPrice,0);
-         double iVol=iVolume(Check_Symbol,NULL,0);
-         double iSMA50=iMA(Check_Symbol,NULL,50,0,MODE_SMA,PRICE_CLOSE,0);
-         double iSMA100=iMA(Check_Symbol,NULL,100,0,MODE_SMA,PRICE_CLOSE,0);
-         double iSMA150=iMA(Check_Symbol,NULL,150,0,MODE_SMA,PRICE_CLOSE,0);
-         double iSMA200=iMA(Check_Symbol,NULL,200,0,MODE_SMA,PRICE_CLOSE,0);
+         double RSInow=iRSI(Check_Symbol,60,RSIperiod,AppliedPrice,0);
+         double iStochValue=iStochastic(Check_Symbol,60,5,3,3,MODE_SMMA,1,MODE_MAIN,1);
+         double iCciValue=iCCI(Check_Symbol,60,RSIperiod,AppliedPrice,0);
+         double iVol=iVolume(Check_Symbol,60,0);
+         double iSMA50=iMA(Check_Symbol,60,50,0,MODE_SMA,PRICE_CLOSE,0);
+         double iSMA100=iMA(Check_Symbol,60,100,0,MODE_SMA,PRICE_CLOSE,0);
+         double iSMA150=iMA(Check_Symbol,60,150,0,MODE_SMA,PRICE_CLOSE,0);
+         double iSMA200=iMA(Check_Symbol,60,200,0,MODE_SMA,PRICE_CLOSE,0);
          
          if(new_time>LastTick[a])
            {
