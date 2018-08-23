@@ -1,9 +1,3 @@
 # Ignore compiled files
 *.ex4
 *~
-
-
-.gitignore~
-..gitignore.un~
-.Proper.mq4.un~
-Proper.mq4~
