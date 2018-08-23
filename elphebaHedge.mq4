@@ -1,9 +1,9 @@
 //+------------------------------------------------------------------+
-//|                                         elphebaClientConnect.mq4 |
-//|                                      Copyright 2017,Codatrek.com |
+//|                                                 elphebaHedge.mq4 |
+//|                                      Copyright 2018,Codatrek.com |
 //|                                         https://www.codatrek.com |
 //+------------------------------------------------------------------+
-#property copyright "Copyright 2017,Codatrek.com"
+#property copyright "Copyright 2018,Codatrek.com"
 #property link      "https://www.codatrek.com"
 #property strict
 /*  "HIGH RISK WARNING: Foreign exchange trading carries a high level of risk that may not be suitable for all investors.
@@ -14,13 +14,13 @@
    Any data and information is provided 'as is' solely for informational purposes, and is not intended for trading purposes or advice."
 */
 
-double   LotPrice=1; // baby steps
-int   version=20180401;
+double   LotPrice=0.01; // baby steps
+int   version=20180823;
 
 //--- input parameters
 extern double    BuyPoint=15;
 extern double    SellPoint=85;
-extern double    tp = 230;
+extern double    tp = 50;
 extern double    dp = 30;
 extern double    sl = 7500;
 extern int       max_trades=8; // max trades per symbol pair
@@ -28,6 +28,10 @@ extern double    bufferEquity=0; // use this to emulate transfers between accoun
 extern bool      instant_close=true;
 extern bool      openTrades=true;
 extern bool      closeTrades=true;
+
+static bool first=true;
+static int pre_OrdersTotal=0;
+int _OrdersTotal=OrdersTotal();
 
 int      tkt,lowest_ticket,highest_ticket;
 
@@ -109,68 +113,27 @@ bool       bNewBar()
      { return(FALSE); }
   }
 //+------------------------------------------------------------------+
-void CheckForOpen()
+void OpenNewHedgePair()
   {
 
-   Print("Check for Openings");
-
-   for(int a=0; a<ArraySize(SymbolPairs); a++)
+   take = bid_price - ((tp + (2*dp))* points);
+   stop = ask_price + (sl * points);
+   res=OrderSend(Check_Symbol,OP_SELL,Lot,bid_price,3,NULL,take,NULL,MAGICMA,0,Red);
+   if(res)
      {
-      Check_Symbol=SymbolPairs[a]+suffix;
-      ask_price = MarketInfo(Check_Symbol,MODE_ASK);
-      bid_price = MarketInfo(Check_Symbol,MODE_BID);
-      points=MarketInfo(Check_Symbol,MODE_POINT);
-
-      RSInow=iRSI(Check_Symbol,NULL,RSIperiod,AppliedPrice,0);
-      RSIlast=iRSI(Check_Symbol,NULL,RSIperiod,AppliedPrice,1);
-
-      iStochvalue=iStochastic(Check_Symbol,NULL,5,3,3,MODE_SMMA,1,MODE_MAIN,1);
-
-      last_rsi = false;
-      this_rsi = false;
-      stoch_sell= false;
-      stoch_buy = false;
-      last_rsi = (RSIlast > 50);
-      this_rsi = (RSInow > 50);
-      rsi_swap=(last_rsi!=this_rsi);
-
-      if(iStochvalue<BuyPoint)
-        {
-         stoch_buy=true;
-        }
-      if(iStochvalue>SellPoint)
-        {
-         stoch_sell=true;
-        }
-      Print(Check_Symbol," : Stoch - ",iStochvalue," - RSI Swap = ",rsi_swap);
-
-      if(SymbolUsed[a]) rsi_swap=false;
-
-      //---- sell conditions
-      if(rsi_swap && stoch_sell)
-        {
-         take = bid_price - ((tp + (2*dp))* points);
-         stop = ask_price + (sl * points);
-         res=OrderSend(Check_Symbol,OP_SELL,Lot,bid_price,3,NULL,take,NULL,MAGICMA,0,Red);
-         if(res)
-           {
-            FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+Check_Symbol+" Event=New_Trade TicketNumber="+DoubleToStr(res,0)+" OrderType="+DoubleToStr(OrderType(),0)+" OpenPrice="+DoubleToStr(OrderOpenPrice(),5)+" Lots="+DoubleToStr(OrderLots(),2)+" TP="+DoubleToStr(OrderTakeProfit(),5)+" SL="+DoubleToStr(OrderStopLoss(),5));
-            TidyUpTrades();
-           }
-        }
-      //---- buy conditions
-      if(rsi_swap && stoch_buy)
-        {
-         take = ask_price + ((tp + (2*dp))* points);
-         stop = bid_price - (sl * points);
-         res=OrderSend(Check_Symbol,OP_BUY,Lot,ask_price,3,NULL,take,NULL,MAGICMA,0,Green);
-         if(res)
-           {
-            FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+Check_Symbol+" Event=New_Trade TicketNumber="+DoubleToStr(res,0)+" OrderType="+DoubleToStr(OrderType(),0)+" OpenPrice="+DoubleToStr(OrderOpenPrice(),5)+" Lots="+DoubleToStr(OrderLots(),2)+" TP="+DoubleToStr(OrderTakeProfit(),5)+" SL="+DoubleToStr(OrderStopLoss(),5));
-            TidyUpTrades();
-           }
-        }
+      FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+Check_Symbol+" Event=New_Trade TicketNumber="+DoubleToStr(res,0)+" OrderType="+DoubleToStr(OrderType(),0)+" OpenPrice="+DoubleToStr(OrderOpenPrice(),5)+" Lots="+DoubleToStr(OrderLots(),2)+" TP="+DoubleToStr(OrderTakeProfit(),5)+" SL="+DoubleToStr(OrderStopLoss(),5));
+      TidyUpTrades();
      }
+
+   take = ask_price + ((tp + (2*dp))* points);
+   stop = bid_price - (sl * points);
+   res=OrderSend(Check_Symbol,OP_BUY,Lot,ask_price,3,NULL,take,NULL,MAGICMA,0,Green);
+   if(res)
+     {
+      FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),3)+" Account="+DoubleToStr(AccountNumber(),0)+" Symbol="+Check_Symbol+" Event=New_Trade TicketNumber="+DoubleToStr(res,0)+" OrderType="+DoubleToStr(OrderType(),0)+" OpenPrice="+DoubleToStr(OrderOpenPrice(),5)+" Lots="+DoubleToStr(OrderLots(),2)+" TP="+DoubleToStr(OrderTakeProfit(),5)+" SL="+DoubleToStr(OrderStopLoss(),5));
+      TidyUpTrades();
+     }
+
   }
 //+------------------------------------------------------------------+
 //|                                                                  |
@@ -442,7 +405,7 @@ int reinit()
 
    open_tickets=0;
 
-   for(int f=0;f<=97;f++)
+   for(int f=0;f<=997;f++)
      {
       profit_close[f]=false;
       trigger_reached[f]=false;
@@ -560,6 +523,23 @@ void OnTick()
 
    updateEquity=0;
 
+   if(first)
+     {
+      pre_OrdersTotal=_OrdersTotal;
+      first=false;
+     }
+
+   _OrdersTotal=OrdersTotal();
+
+// Compare the amount of positions on the previous tick to the current amount.
+// If it has decreased then an order has closed so we should open a new pair.
+   if(_OrdersTotal<pre_OrdersTotal)
+     {
+      if(bNB && !close_up && !pause && openTrades && OrdersTotal()<max_trades && simMargin()>EquityCheck) OpenNewHedgePair(); // This is more conservative as it takes into account moneys used in the trade itself.;
+     }
+// Memorize the amount of positions
+   pre_OrdersTotal=_OrdersTotal;
+
    if(simEquity()>CloseOutPrice && !close_up && closeTrades)
      {
       datetime setTime=GlobalVariableSet("globalCloseUp",1);
@@ -594,19 +574,17 @@ void OnTick()
 
 //if(bM1) ExportTrades();
 
-   if(bNB && !close_up && !pause && openTrades && OrdersTotal()<max_trades && simMargin()>EquityCheck) CheckForOpen(); // This is more conservative as it takes into account moneys used in the trade itself.
-
    if(bNB && !close_up && simMargin()<EquityCheck)
      {
       datetime setTime=GlobalVariableSet("globalCloseUp",2);
      }    // If less than equityCheck then pause opening new trades.
 
    if(bNB && !close_up && simMargin()>EquityCheck && GlobalVariableGet("globalCloseUp")==2)
-   {
+     {
       datetime setTime=GlobalVariableSet("globalCloseUp",0);
 
-   }
-   
+     }
+
    if(!IsTesting()) FileFlush(handle);
 
   }
