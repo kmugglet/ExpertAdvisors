@@ -50,7 +50,7 @@ int      trades_won=0;
 int      oldOrdersTotal=0,oldHistoryTotal=0,oldMaxTicket=0;
 
 double   Lot,StartBalance,Withdrawls,WeeklyWithdrawl,Deposits,updateEquity,increaseTarget;
-bool     rsi_swap=true;
+bool     rsi_swap=true, openPair;
 bool     close_up=false,pause=false;
 bool     this_rsi,last_rsi,stoch_buy,stoch_sell,close_email=false,bNB,bM1,bW1;
 bool     ma_close,profit_close[999],trigger_reached[999],order_exists[999],res;
@@ -527,16 +527,24 @@ void OnTick()
      {
       pre_OrdersTotal=_OrdersTotal;
       first=false;
+      openPair = false;
      }
 
    _OrdersTotal=OrdersTotal();
 
 // Compare the amount of positions on the previous tick to the current amount.
 // If it has decreased then an order has closed so we should open a new pair.
+   if(_OrdersTotal>pre_OrdersTotal)
+     {
+     openPair = false;
+     }
    if(_OrdersTotal<pre_OrdersTotal)
      {
-      if(bNB && !close_up && !pause && openTrades && OrdersTotal()<max_trades && simMargin()>EquityCheck) OpenNewHedgePair(); // This is more conservative as it takes into account moneys used in the trade itself.;
+     openPair = true;
      }
+     
+   if(bNB && !close_up && !pause && openTrades && openPair && simMargin()>EquityCheck) OpenNewHedgePair(); // This is more conservative as it takes into account moneys used in the trade itself.;
+
 // Memorize the amount of positions
    pre_OrdersTotal=_OrdersTotal;
 
