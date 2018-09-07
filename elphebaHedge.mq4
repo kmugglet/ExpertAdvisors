@@ -158,7 +158,7 @@ void OnTick()
 
 // Compare the amount of positions on the previous tick to the current amount.
 // If it has decreased then an order has closed so we should open a new pair.
-   if(_OrdersTotal>pre_OrdersTotal)
+   if(_OrdersTotal>=pre_OrdersTotal)
      {
       openPair=false;
       pre_OrdersTotal=_OrdersTotal;
