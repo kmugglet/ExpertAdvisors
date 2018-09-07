@@ -1,5 +1,5 @@
 //+------------------------------------------------------------------+
-//|                                                 elphebaHedge.mq4 |
+//|                                          elphebaSplunkOrders.mq4 |
 //|                                      Copyright 2018,Codatrek.com |
 //|                                         https://www.codatrek.com |
 //+------------------------------------------------------------------+
@@ -14,22 +14,11 @@
    Any data and information is provided 'as is' solely for informational purposes, and is not intended for trading purposes or advice."
 */
 
-double   LotPrice=0.01; // baby steps
-int   version=20180823;
+double   LotPrice=1; // baby steps
+int   version=20180401;
 
 //--- input parameters
-
-extern double    tp = 10;
-extern double    dp = 10;
-extern double    sl = 7500;
-extern double    bufferEquity=0; // use this to emulate transfers between accounts. Start with 200, add 10,000. Only 200 will be seen by EA
-extern bool      instant_close=true;
-extern bool      openTrades=true;
-extern bool      closeTrades=true;
-
-static bool first=true;
-static int pre_OrdersTotal=0;
-int _OrdersTotal=OrdersTotal();
+extern int      MAGICMA = 24771442;
 
 int      tkt,lowest_ticket,highest_ticket;
 
@@ -41,37 +30,22 @@ double   stop_loss;
 double   ask_price,bid_price,points,ask_p,bid_p,pts;
 string   Check_Symbol,suffix="i";
 int      SymbolOrders=0;
-int      MAGICMA;
-int      trades_won=0;
-int      oldOrdersTotal=0,oldHistoryTotal=0,oldMaxTicket=0;
 
 double   Lot,StartBalance,Withdrawls,WeeklyWithdrawl,Deposits,updateEquity,increaseTarget;
-bool     openPair;
 bool     close_up=false,pause=false;
-bool     close_email=false,bNB,bM1,bW1;
+bool     bNB,bM1,bW1;
 bool     ma_close,profit_close[999],trigger_reached[999],order_exists[999],res;
-double   current_profit[999],tkt_open[999],tkt_high[999],tkt_low[999],tkt_close[999];
-int      hedge_tkt[999],h_tkt;
-double   symbol_profit;
-double   f_profit[999];
+
 int      open_trades[1000],open_tickets;
 
-string   filename;
-int      handle,st;
+string   Order_Symbol,BuySell_Type;
+double   Open_At,Stop_At,Take_At1,Take_At2,Order_Size;
+
+int      Order_Type;
 string   order[]={"Buy","Sell"};
-datetime LastTick[20]; // same number as symbol pairs or greater
 datetime TimeNow;
-bool     SymbolUsed[20]; // only open one trade under each currency
-string   SymbolPairs[]=
-  {
-   "EURUSD","EURGBP","GBPUSD",
-   "AUDUSD","EURJPY","AUDJPY",
-   "EURAUD","USDCAD","USDJPY",
-   "GBPCAD","AUDCAD","USDCHF",
-   "GBPAUD"
-  };
 //+------------------------------------------------------------------+
-//| expert initialization function                                   |
+//| initialise functions                                             |
 //+------------------------------------------------------------------+
 bool       bNewMin()
   {
@@ -84,6 +58,8 @@ bool       bNewMin()
      { return(FALSE); }
   }
 //+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 bool       bNewWeek()
   {
 
@@ -94,6 +70,8 @@ bool       bNewWeek()
    else
      { return(FALSE); }
   }
+//+------------------------------------------------------------------+
+//|                                                                  |
 //+------------------------------------------------------------------+
 bool       bNewBar()
   {
@@ -106,27 +84,47 @@ bool       bNewBar()
      { return(FALSE); }
   }
 //+------------------------------------------------------------------+
-void OpenNewHedgePair()
-  {
-
-   ask_price = MarketInfo(_Symbol,MODE_ASK);
-   bid_price = MarketInfo(_Symbol,MODE_BID);
-
-   points=MarketInfo(_Symbol,MODE_POINT);
-   take = bid_price - ((tp + (2*dp))* points);
-   stop = ask_price + (sl * points);
-   res=OrderSend(_Symbol,OP_SELL,Lot,bid_price,3,NULL,take,NULL,MAGICMA,0,Red);
-   take = ask_price + ((tp + (2*dp))* points);
-   stop = bid_price - (sl * points);
-   res=OrderSend(_Symbol,OP_BUY,Lot,ask_price,3,NULL,take,NULL,MAGICMA,0,Green);
-   pre_OrdersTotal=OrdersTotal();
-  }
-//+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
+int CheckForOpen()
+  {
+   string acctUrl="http://kmug.ddns.net/elpheba/"+DoubleToStr(AccountNumber(),0)+"/newOrders";
+   string checkForUpdate=GrabWeb(acctUrl,AccountEquity());
+   string sep=",";                // A separator as a character
+   ushort u_sep;                  // The code of the separator character
+   string result[];               // An array to get strings
+//--- Get the separator code
+   u_sep=StringGetCharacter(sep,0);
+//--- Split the string to substrings
+   int k=StringSplit(checkForUpdate,u_sep,result);
+   if(k==7)
+     {
+      Order_Symbol=(string) result[0];
+      BuySell_Type=(string) result[1];
+      Open_At = (double) result[2];
+      Stop_At = (double) result[3];
+      Take_At1 = (double) result[4];
+      Take_At2 = (double) result[5];
+      Order_Size=(double) result[6];
+      if(BuySell_Type=="Buy") Order_Type=OP_BUYLIMIT;
+      if(BuySell_Type=="Sell") Order_Type=OP_SELLLIMIT;
+
+      res=OrderSend(Order_Symbol,Order_Type,Order_Size,Open_At,3,Stop_At,Take_At1,NULL,MAGICMA,0,Red);
+      res=OrderSend(Order_Symbol,Order_Type,Order_Size,Open_At,3,Stop_At,Take_At2,NULL,MAGICMA,0,Blue);
+     }
+
+   return(0);
+  }
+//+------------------------------------------------------------------+
+//| expert initialization function                                 |
+//+------------------------------------------------------------------+
+
+
 void OnInit()
   {
+
    Lot=LotPrice;
+   return;
   }
 //+------------------------------------------------------------------+
 //| expert start function                                            |
@@ -136,70 +134,42 @@ void OnTick()
    if(IsTradeAllowed()==false) return;
    bNB = bNewBar();
    bM1 = bNewMin();
-   bW1 = bNewWeek();
-
-   if(GlobalVariableGet("globalCloseUp")>0)
-     {
-      close_up=true;
-        } else {
-      close_up=false;
-     };
 
    updateEquity=0;
 
-   if(first)
-     {
-      pre_OrdersTotal=_OrdersTotal;
-      first=false;
-      openPair=false;
-     }
-
-   _OrdersTotal=OrdersTotal();
-
-// Compare the amount of positions on the previous tick to the current amount.
-// If it has decreased then an order has closed so we should open a new pair.
-   if(_OrdersTotal>pre_OrdersTotal)
-     {
-      openPair=false;
-      pre_OrdersTotal=_OrdersTotal;
-     }
-   if(_OrdersTotal<pre_OrdersTotal)
-     {
-      openPair=true;
-     }
-   if(_OrdersTotal<2)
-     {
-      openPair=true;
-     }
-
-   if(bNB) Print("_OrdersTotal = ",_OrdersTotal,"  pre_OrdersTotal = ",pre_OrdersTotal,"  OrdersTotal() = ",OrdersTotal(),"  openPair = ",openPair);
-   if(bNB && !close_up && !pause && openTrades && openPair && simMargin()>EquityCheck) OpenNewHedgePair(); // This is more conservative as it takes into account moneys used in the trade itself.;
+   if(bNB && !close_up && !pause) CheckForOpen(); // This is more conservative as it takes into account moneys used in the trade itself.
 
   }
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-double simEquity()
+string GrabWeb(string strUrl,double currentEquity)
   {
+   string headers,response;
+   char post[],result[];
+   int httpRes,timeout=5000;
+   char data[];
+   string login=DoubleToStr(AccountNumber(),0);
+   string password="pass";
+   string str="Acct="+login+"&Password="+password+"&Equity="+DoubleToStr(currentEquity,2);
 
-   double Equity=AccountEquity()-Withdrawls+Deposits-bufferEquity;
+   ArrayResize(data,StringToCharArray(str,data,0,WHOLE_ARRAY,CP_UTF8)-1);
 
-   return Equity;
+   ResetLastError();
+   httpRes=WebRequest("GET",strUrl,"",NULL,1000,data,ArraySize(data),result,headers);
+
+   //Print("Status code: ",httpRes,", error: ",GetLastError());
+   response=CharArrayToString(result);
+   Print("Server response: ",response);
+   return(response);
   }
-//+------------------------------------------------------------------+
-double simBalance()
+//+--------------------------------------------------------------+
+void mySleep(int seconds)
   {
+   for(int tick=0;tick<=seconds;tick++)
+     {
+      Sleep(1000);
+     }
 
-   double Balance=AccountBalance()-Withdrawls+Deposits-bufferEquity;
-
-   return Balance;
-  }
-//+------------------------------------------------------------------+
-double simMargin()
-  {
-
-   double Margin=AccountFreeMargin()-Withdrawls+Deposits-bufferEquity;
-
-   return Margin;
   }
 //+------------------------------------------------------------------+

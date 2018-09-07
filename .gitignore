@@ -1,3 +1,4 @@
 # Ignore compiled files
 *.ex4
 *~
+*.dat

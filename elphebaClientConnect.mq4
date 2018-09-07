@@ -572,6 +572,7 @@ void OnTick()
    if(close_up && OrdersTotal()==0)
      {
       Print("****** Close out completed, balance=",simBalance()," ***********");
+      datetime setTime=GlobalVariableSet("globalCloseUp",3);
       close_up=false;
       SendNotification("Close up completed @ "+DoubleToStr(simEquity(),2));
       FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=CloseUp_Complete Equity="+DoubleToStr(simEquity(),2));
