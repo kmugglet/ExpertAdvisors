@@ -14,7 +14,7 @@
    Any data and information is provided 'as is' solely for informational purposes, and is not intended for trading purposes or advice."
 */
 
-double   LotPrice=0.01; // baby steps
+double   LotPrice=0.02; // baby steps
 int   version=20180823;
 
 //--- input parameters
@@ -126,7 +126,7 @@ void OpenNewHedgePair()
 //+------------------------------------------------------------------+
 void OnInit()
   {
-   Lot=LotPrice;
+   Lot = GlobalVariableGet("globalLots");
   }
 //+------------------------------------------------------------------+
 //| expert start function                                            |
@@ -171,7 +171,7 @@ void OnTick()
      {
       openPair=true;
      }
-
+   Lot = GlobalVariableGet("globalLots");
    if(bNB) Print("_OrdersTotal = ",_OrdersTotal,"  pre_OrdersTotal = ",pre_OrdersTotal,"  OrdersTotal() = ",OrdersTotal(),"  openPair = ",openPair);
    if(bNB && !close_up && !pause && openTrades && openPair && simMargin()>EquityCheck) OpenNewHedgePair(); // This is more conservative as it takes into account moneys used in the trade itself.;
 
