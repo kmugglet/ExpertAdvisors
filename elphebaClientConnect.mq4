@@ -458,7 +458,7 @@ int reinit()
      }
 
 // contact mothership for instructions
-// expecting a csv string of CloseUp, Withdrawls,Deposits
+// expecting a csv string of CloseUp, Withdrawls,Deposits,Lots
    string acctUrl="http://kmug.ddns.net/elpheba/"+DoubleToStr(AccountNumber(),0)+"/start/";
    string sep=",";                // A separator as a character
    ushort u_sep;                  // The code of the separator character
@@ -479,7 +479,7 @@ int reinit()
       k=StringSplit(instructions,u_sep,result);
       //--- Show a comment
       PrintFormat("Strings obtained: %d. Used separator '%s' with the code %d",k,sep,u_sep);
-      if(k!=3)
+      if(k!=4)
         {
          Print("globalCloseUp status = ",GlobalVariableGet("globalCloseUp"));
          datetime setTime=GlobalVariableSet("globalCloseUp",1);
@@ -499,7 +499,7 @@ int reinit()
         }
      }
 
-   if(k==3)
+   if(k==4)
      {
       CloseOutPrice=(double) result[0];
       Withdrawls=(double) result[1];
