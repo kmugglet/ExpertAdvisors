@@ -56,7 +56,7 @@ double   symbol_profit;
 double   f_profit[999];
 double   RSIprev;
 int      open_trades[1000],open_tickets;
-double   iStochvalue=0;
+double   iStochvalue=0,Lots;
 double   RSInow,RSIlast;
 
 string   filename;
@@ -458,7 +458,7 @@ int reinit()
      }
 
 // contact mothership for instructions
-// expecting a csv string of CloseUp, Withdrawls,Deposits
+// expecting a csv string of CloseUp, Withdrawls,Deposits,Lots
    string acctUrl="http://kmug.ddns.net/elpheba/"+DoubleToStr(AccountNumber(),0)+"/start/";
    string sep=",";                // A separator as a character
    ushort u_sep;                  // The code of the separator character
@@ -467,7 +467,7 @@ int reinit()
 
 
    int k=0;
-   while(k!=3)
+   while(k!=4)
      {
 
       string instructions=GrabWeb(acctUrl,simEquity());
@@ -479,7 +479,7 @@ int reinit()
       k=StringSplit(instructions,u_sep,result);
       //--- Show a comment
       PrintFormat("Strings obtained: %d. Used separator '%s' with the code %d",k,sep,u_sep);
-      if(k!=3)
+      if(k!=4)
         {
          Print("globalCloseUp status = ",GlobalVariableGet("globalCloseUp"));
          datetime setTime=GlobalVariableSet("globalCloseUp",1);
@@ -499,11 +499,12 @@ int reinit()
         }
      }
 
-   if(k==3)
+   if(k==4)
      {
       CloseOutPrice=(double) result[0];
       Withdrawls=(double) result[1];
       Deposits=(double) result[2];
+      Lots=(double) result[3];
      }
 
    bNewBar();
@@ -511,11 +512,11 @@ int reinit()
    bNewMin();
 
    increaseTarget=simBalance()*0.01;
+
    EquityCheck=simEquity()*0.5;
-   LotPrice=(simEquity()/1000);
 
    symbol_profit=0;
-   Lot=NormalizeDouble(LotPrice/100,2);
+   Lot=NormalizeDouble(Lots,2);
    if(Lot<0.01) Lot=0.01;
 
    oldOrdersTotal=-1;
@@ -526,6 +527,7 @@ int reinit()
    stop_loss=sl;
    close_up=false;
    datetime setTime=GlobalVariableSet("globalCloseUp",0);
+   datetime setTime2=GlobalVariableSet("globalLots",Lots);
 
    Print("globalCloseUp status = ",GlobalVariableGet("globalCloseUp"));
 
@@ -572,6 +574,7 @@ void OnTick()
    if(close_up && OrdersTotal()==0)
      {
       Print("****** Close out completed, balance=",simBalance()," ***********");
+      datetime setTime=GlobalVariableSet("globalCloseUp",3);
       close_up=false;
       SendNotification("Close up completed @ "+DoubleToStr(simEquity(),2));
       FileWrite(handle,"Time="+DoubleToStr(correctTime(TimeCurrent()),0)+" Account="+DoubleToStr(AccountNumber(),0)+" Event=CloseUp_Complete Equity="+DoubleToStr(simEquity(),2));

@@ -1,3 +1,5 @@
 # Ignore compiled files
 *.ex4
 *~
+*.dat
+mqlcache.dat
