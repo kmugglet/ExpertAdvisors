@@ -511,7 +511,7 @@ int reinit()
    bNewMin();
 
    increaseTarget=simBalance()*0.01;
-   EquityCheck=simEquity()*0.85;
+   EquityCheck=simEquity()*0.5;
    LotPrice=(simEquity()/1000);
 
    symbol_profit=0;

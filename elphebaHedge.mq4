@@ -527,7 +527,7 @@ void OnTick()
      {
       pre_OrdersTotal=_OrdersTotal;
       first=false;
-      openPair = false;
+      openPair=false;
      }
 
    _OrdersTotal=OrdersTotal();
@@ -536,16 +536,18 @@ void OnTick()
 // If it has decreased then an order has closed so we should open a new pair.
    if(_OrdersTotal>pre_OrdersTotal)
      {
-     openPair = false;
+      openPair=false;
      }
    if(_OrdersTotal<pre_OrdersTotal)
      {
-     openPair = true;
+      openPair=true;
      }
-     
+
+   if(OrdersTotal()==0) openPair=true;
+
    if(bNB && !close_up && !pause && openTrades && openPair && simMargin()>EquityCheck) OpenNewHedgePair(); // This is more conservative as it takes into account moneys used in the trade itself.;
 
-// Memorize the amount of positions
+                                                                                                           // Memorize the amount of positions
    pre_OrdersTotal=_OrdersTotal;
 
    if(simEquity()>CloseOutPrice && !close_up && closeTrades)
