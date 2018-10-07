@@ -513,7 +513,7 @@ int reinit()
 
    increaseTarget=simBalance()*0.01;
 
-   EquityCheck=simEquity()*0.5;
+   EquityCheck=simEquity()*0.75;
 
    symbol_profit=0;
    Lot=NormalizeDouble(Lots,2);
