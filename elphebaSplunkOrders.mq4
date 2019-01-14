@@ -29,7 +29,7 @@ double   drop_profit;
 double   stop_loss;
 double   ask_price,bid_price,points,ask_p,bid_p,pts;
 string   Check_Symbol,suffix="i";
-int      SymbolOrders=0;
+int      SymbolOrders=0,symbolLength;
 
 double   Lot,StartBalance,Withdrawls,WeeklyWithdrawl,Deposits,updateEquity,increaseTarget;
 bool     close_up=false,pause=false;
@@ -41,9 +41,9 @@ int      open_trades[1000],open_tickets;
 string   Order_Symbol,BuySell_Type,timeStamp;
 double   Open_At,Stop_At,Take_At1,Take_At2,Order_Size;
 
-int      Order_Type;
+int      Order_Type,digits;
 string   order[]={"Buy","Sell"};
-datetime TimeNow;
+datetime TimeNow,pendingOrderExpiry;
 //+------------------------------------------------------------------+
 //| initialise functions                                             |
 //+------------------------------------------------------------------+
@@ -88,7 +88,7 @@ bool       bNewBar()
 //+------------------------------------------------------------------+
 int CheckForOpen()
   {
-   string acctUrl="http://kmug.ddns.net/elpheba/newOrders";
+   string acctUrl="http://kmug.ddns.net/elpheba/newOrders/";
    string checkForUpdate=GrabWeb(acctUrl,AccountEquity());
    string sep=",";                // A separator as a character
    ushort u_sep;                  // The code of the separator character
@@ -99,21 +99,31 @@ int CheckForOpen()
    int k=StringSplit(checkForUpdate,u_sep,result);
    if(k==8)
      {
-      timeStamp=(string) result[0];
+      timeStamp=int((string) result[0]);
       Order_Symbol=(string) result[1];
+      Order_Symbol = StringSubstr(Order_Symbol,0,symbolLength);
       BuySell_Type=(string) result[6];
       Open_At = (double) result[2];
       Stop_At = (double) result[3];
       Take_At1 = (double) result[4];
       Take_At2 = (double) result[5];
       Order_Size=(double) result[7];
-      if(BuySell_Type=="Buy") Order_Type=OP_BUYLIMIT;
-      if(BuySell_Type=="Sell") Order_Type=OP_SELLLIMIT;
-
-      res=OrderSend(Order_Symbol,Order_Type,Order_Size,Open_At,3,Stop_At,Take_At1,NULL,MAGICMA,0,Red);
-      res=OrderSend(Order_Symbol,Order_Type,Order_Size,Open_At,3,Stop_At,Take_At2,NULL,MAGICMA,0,Blue);
+      if(BuySell_Type=="Buy") Order_Type=2;
+      if(BuySell_Type=="Sell") Order_Type=3;
+      pendingOrderExpiry = (datetime) timeStamp+7200;
+      digits = MarketInfo(Order_Symbol,MODE_DIGITS);
+      Open_At = NormalizeDouble(Open_At,digits);
+      Stop_At = NormalizeDouble(Stop_At,digits);
+      Take_At1 = NormalizeDouble(Take_At1,digits);
+      Take_At2 = NormalizeDouble(Take_At2,digits);
+      
+      int res1=(OrderSend(Order_Symbol,Order_Type,Order_Size,Open_At,10,Stop_At,Take_At1,NULL,MAGICMA,pendingOrderExpiry,Red));
+      if(res1<0) Print(1,"==",GetLastError());
+      int res2=(OrderSend(Order_Symbol,Order_Type,Order_Size,Open_At,10,Stop_At,Take_At2,NULL,MAGICMA,pendingOrderExpiry,Blue));
+      if(res2<0) Print(2,"==",GetLastError());
      }
 
+   
    return(0);
   }
 //+------------------------------------------------------------------+
@@ -124,6 +134,7 @@ int CheckForOpen()
 void OnInit()
   {
 
+   symbolLength = StringLen(_Symbol); 
    Lot=LotPrice;
    return;
   }
