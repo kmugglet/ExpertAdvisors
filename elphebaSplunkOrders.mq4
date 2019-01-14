@@ -15,7 +15,7 @@
 */
 
 double   LotPrice=1; // baby steps
-int   version=20180401;
+int   version=20190114;
 
 //--- input parameters
 extern int      MAGICMA = 24771442;
@@ -38,7 +38,7 @@ bool     ma_close,profit_close[999],trigger_reached[999],order_exists[999],res;
 
 int      open_trades[1000],open_tickets;
 
-string   Order_Symbol,BuySell_Type;
+string   Order_Symbol,BuySell_Type,timeStamp;
 double   Open_At,Stop_At,Take_At1,Take_At2,Order_Size;
 
 int      Order_Type;
@@ -97,15 +97,16 @@ int CheckForOpen()
    u_sep=StringGetCharacter(sep,0);
 //--- Split the string to substrings
    int k=StringSplit(checkForUpdate,u_sep,result);
-   if(k==7)
+   if(k==8)
      {
-      Order_Symbol=(string) result[0];
-      BuySell_Type=(string) result[1];
+      timeStamp=(string) result[0];
+      Order_Symbol=(string) result[1];
+      BuySell_Type=(string) result[6];
       Open_At = (double) result[2];
       Stop_At = (double) result[3];
       Take_At1 = (double) result[4];
       Take_At2 = (double) result[5];
-      Order_Size=(double) result[6];
+      Order_Size=(double) result[7];
       if(BuySell_Type=="Buy") Order_Type=OP_BUYLIMIT;
       if(BuySell_Type=="Sell") Order_Type=OP_SELLLIMIT;
 
