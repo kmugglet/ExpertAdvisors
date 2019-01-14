@@ -88,7 +88,7 @@ bool       bNewBar()
 //+------------------------------------------------------------------+
 int CheckForOpen()
   {
-   string acctUrl="http://kmug.ddns.net/elpheba/"+DoubleToStr(AccountNumber(),0)+"/newOrders";
+   string acctUrl="http://kmug.ddns.net/elpheba/newOrders";
    string checkForUpdate=GrabWeb(acctUrl,AccountEquity());
    string sep=",";                // A separator as a character
    ushort u_sep;                  // The code of the separator character
